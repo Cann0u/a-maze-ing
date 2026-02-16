@@ -39,8 +39,3 @@ class MazeGenerator():
             if prev == []:
                 end = True
         return maze
-
-
-maze = MazeGenerator(40, 60)
-for l in maze.maze_gen():
-    print(l)
