@@ -3,7 +3,7 @@ import curses as cs
 import time
 from pydantic import BaseModel, Field, model_validator
 
-# if height = 21 21 % 2 = True
+
 class MazeGenerator(BaseModel):
     height: int
     width: int
