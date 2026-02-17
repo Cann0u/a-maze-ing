@@ -1,14 +1,24 @@
 import random
 import curses as cs
 import time
+from pydantic import BaseModel, Field, model_validator
 
-class MazeGenerator():
-    def __init__(self, height: int, width: int):
-        self.width = width
-        self.height = height
+# if height = 21 21 % 2 = True
+class MazeGenerator(BaseModel):
+    height: int
+    width: int
+    start: tuple[int, int] = Field(default=(1, 1))
+
+    @model_validator(mode='after')
+    def check_format(self) -> 'MazeGenerator':
+        if self.height < 2 or self.width < 2:
+            raise ValueError('invalid maze format')
+        if not self.start:
+            raise ValueError('invalid start position')
+        return self
 
     def break_wall(self, maze, pos, direc):
-        for i in range(2):
+        for _ in range(2):
             x, y = pos
             h, w = direc
             maze[x + h][y + w] = "⬜"
@@ -16,8 +26,8 @@ class MazeGenerator():
         return pos
 
     def maze_gen(self) -> list[list[int]]:
-        height = self.height + self.height % 2 - 1
-        width = self.width + self.width % 2 - 1
+        height = self.height * 2 + 1
+        width = self.width * 2 + 1
         maze = [["⬛" for j in range(width)] for i in range(height)]
         direc = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         end = False
@@ -56,3 +66,17 @@ class MazeGenerator():
             screen.refresh()
             screen.clear()
         return maze
+
+    def find_path_dfs(self, maze):
+        height = self.height * 2 + 1
+        width = self.width * 2 + 1
+        # traget = 
+        # visit_cellule = set()
+        start_maze = [self.start]
+        direc = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        while start_maze:
+            currend_node = start_maze.pop()
+        return find_path
+
+    # def reconstruc_path(self):
+    #     pass
