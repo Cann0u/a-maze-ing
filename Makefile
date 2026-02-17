@@ -19,6 +19,14 @@ clean:
 
 lint:
 	@echo "check code quality (--strict - mode)"
-	$(UV) run flake8 . mypy . --strict --warn-return-any \
+	flake8 . --exclude .venv
+	mypy . --strict --warn-return-any \
+	--warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
+	--check-untyped-defs
+
+lint-strict:
+	@echo "check (--strict -mode)"
+	flake8 . --exclude .venv
+	mypy . --strict --warn-return-any \
 	--warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs \
 	--check-untyped-defs
