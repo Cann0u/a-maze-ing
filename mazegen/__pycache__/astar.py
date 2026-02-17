@@ -23,6 +23,7 @@ class AStar:
     def solve(self, maze: list[list[int]]) -> list[list[int]]:
         heigth = len(maze)
         width = len(maze[0])
+        direc = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
         if self.start == self.end:
             return maze
@@ -36,6 +37,17 @@ class AStar:
         cell_tab[i][j].parent_j = j
         maze[i][j] = 3
         cell_open = []
-        
+        heapq.heappush(cell_open, (0.0, i, j))
+        end = False
+        while len(cell_open) > 0:
+            p= heapq.heappop(cell_open)
+            closed_cell[i][j] = True
+            for pos in direc:
+                i, j = pos
+                if i < self.heigth - 1 and i > 0 and j < self.width - 1 and j > 0 and maze[i][j] != 0:
+                    if (i, j) == self.end:
+                        return maze
+                    else:
+                        h_new = ((i - self.end[0]) ** 2 + (j - self.end[1]) ** 2) ** 0.5
 
         return maze

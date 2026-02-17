@@ -101,14 +101,26 @@ class MazeGenerator:
             for y, row in enumerate(maze):
                 for x, char in enumerate(row):
                     if char == 0:
-                        screen.addstr(y, x * 2, "██", cs.color_pair(1))
+                        try:
+                            screen.addstr(y, x * 2, "██", cs.color_pair(1))
+                        except Exception:
+                            pass
                     elif char == 1:
-                        screen.addstr(
-                            y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
-                        )
+                        try:
+                            screen.addstr(
+                                y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
+                            )
+                        except Exception:
+                            pass
                     else:
-                        screen.addstr(y, x * 2, "██", cs.color_pair(3))
-                screen.addch("\n")
+                        try:
+                            screen.addstr(y, x * 2, "██", cs.color_pair(3))
+                        except Exception:
+                            pass
+                try:
+                    screen.addch("\n")
+                except Exception:
+                    pass
             time.sleep(1 / 60)
             screen.refresh()
         screen.addstr("rentre une touche stp: ")
