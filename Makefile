@@ -1,6 +1,7 @@
 PYTHON = uv run
 UV = uv
-MAIN_FILES = amazing.py
+MAIN_FILES = a_maze_ing.py
+CONFIG_FILE = config.txt
 
 
 all: install run
@@ -11,7 +12,7 @@ install:
 
 run:
 	@echo "executing maze"
-	$(PYTHON) $(MAIN_FILES)
+	$(PYTHON) $(MAIN_FILES) $(CONFIG_FILE)
 
 clean:
 	@echo "remove invalid files"

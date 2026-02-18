@@ -1,11 +1,12 @@
 from mazegen import MazeGenerator
 import curses as cs
 from pydantic import ValidationError
+import sys
 
 
-def parse_config() -> dict[str, str]:
+def parse_config(filename: str) -> dict[str, str]:
     read_file = {}
-    with open('config.txt', 'r') as file:
+    with open(filename, 'r') as file:
         for line in file:
             line = line.strip()
             if not line or line.startswith('#'):
@@ -16,6 +17,12 @@ def parse_config() -> dict[str, str]:
 
 
 def main() -> None:
+    av = sys.argv
+    ac = len(av)
+    if ac != 2:
+        print('error arg')
+        sys.exit(1)
+    config = parse_config(av[1])
     try:
         generator = MazeGenerator(height=5, width=5)
         maze = generator.maze_gen()
