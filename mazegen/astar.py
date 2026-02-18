@@ -35,8 +35,8 @@ class AStar:
         x, y = curr
         d_x, d_y = tuple(map(lambda e: e // 2, direc))
         return (
-            maze[x + d_x][y + d_y] == 1
-            and maze[x + direc[0]][y + direc[1]] == 1
+            maze[x - d_x][y - d_y] == 1
+            and maze[x - direc[0]][y - direc[1]] == 1
         )
 
     def is_destination(self, row: int, col: int):
@@ -62,16 +62,22 @@ class AStar:
             col = temp_col
         path.append((row, col))
         path.reverse()
-        for coord in path:
+        prev = path[0]
+        direc = [(-2, 0), (2, 0), (0, -2), (0, 2)]
+        maze[prev[0]][prev[1]] = 3
+        for coord in path[1:]:
             i, j = coord
+            for vis in direc:
+                if prev[0] + vis[0] == i and prev[1] + vis[1] == j:
+                    maze[prev[0] + vis[0] // 2][prev[1] + vis[1] // 2] = 3
             maze[i][j] = 3
             MazeGenerator.print_maze(screen, maze)
             time.sleep(1 / 60)
             screen.refresh()
+            prev = coord
         string = ""
         for i in path:
             string += f"-> {path} "
-        screen.addstr(string)
         screen.getch()
 
     def solve(self, screen, maze: list[list[int]]) -> list[list[int]]:
@@ -80,7 +86,7 @@ class AStar:
         print(f"{heigth} {width}")
         direc = [(-2, 0), (2, 0), (0, -2), (0, 2)]
         x, y = self.end
-        if maze[x][y] == 0:
+        if x >= heigth or y >= width:
             return "coubeh"
 
         if self.start == self.end:
@@ -97,8 +103,8 @@ class AStar:
         cell_tab[i][j].h = 0
         cell_open = []
         heapq.heappush(cell_open, (0.0, i, j))
+        end = False
         while len(cell_open) > 0:
-            print(cell_open)
             p = heapq.heappop(cell_open)
             i = p[1]
             j = p[2]
@@ -112,6 +118,7 @@ class AStar:
                     and not closed_cell[new_i][new_j]
                 ):
                     if self.is_destination(new_i, new_j):
+                        end = True
                         cell_tab[new_i][new_j].parent_i = i
                         cell_tab[new_i][new_j].parent_j = j
                         print("The destination cell is found")
@@ -131,4 +138,6 @@ class AStar:
                             cell_tab[new_i][new_j].h = h_new
                             cell_tab[new_i][new_j].parent_i = i
                             cell_tab[new_i][new_j].parent_j = j
+        if not end:
+            print("j'aipastrouve")
         return maze

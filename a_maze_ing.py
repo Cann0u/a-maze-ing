@@ -10,7 +10,7 @@ def main() -> None:
         maze = cs.wrapper(generator.maze_gen)
     except ValueError as e:
         print(e)
-    solver = AStar((0, 0), (20, 20))
+    solver = AStar((0, 0), (19, 19))
     solver.solve(screen, maze)
 
 
