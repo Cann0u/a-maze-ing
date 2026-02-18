@@ -88,7 +88,8 @@ class AStar:
         x, y = self.end
         if x >= heigth or y >= width:
             return "coubeh"
-
+        if maze[self.end[0]][self.end[1]] != 1:
+            return "Invalid end"
         if self.start == self.end:
             return maze
         closed_cell = [[False for j in range(width)] for i in range(heigth)]
