@@ -1,12 +1,10 @@
 from mazegen import MazeGenerator
-# import curses as cs
 from pydantic import ValidationError
 import sys
 
-# end: tuple[int, int]
 
-
-def output_maze(lines: list[str], start: tuple[int, int], end: tuple[int, int]) -> None:
+def output_maze(lines: list[str], start: tuple[int, int],
+                end: tuple[int, int]) -> None:
     with open("output_maze.txt", 'w') as file:
         for line in lines:
             file.write(line + '\n')
@@ -36,8 +34,8 @@ def main() -> None:
     try:
         generator = MazeGenerator(height=20, width=20)
         config = parse_config(av[1])
-        height = int(config['HEIGHT'])
-        width = int(config['WIDTH'])
+        # height = int(config['HEIGHT'])
+        # width = int(config['WIDTH'])
         maze = generator.maze_gen()
         start_pos = tuple(map(int, config['ENTRY'].split(',')))
         end_pos = tuple(map(int, config['EXIT'].split(',')))
