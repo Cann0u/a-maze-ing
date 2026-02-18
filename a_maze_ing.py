@@ -1,16 +1,18 @@
 from mazegen import MazeGenerator
-import curses as cs
+# import curses as cs
 from pydantic import ValidationError
 import sys
 
+# end: tuple[int, int]
 
-def output_maze(lines: list[str], start: MazeGenerator) -> None:
+
+def output_maze(lines: list[str], start: tuple[int, int], end: tuple[int, int]) -> None:
     with open("output_maze.txt", 'w') as file:
         for line in lines:
             file.write(line + '\n')
         file.write('\n')
-        file.write(f"{start[0]},{start[1]}")
-        # file.write(f"{end[0]}, {end[1]}")
+        file.write(f"{start[0]},{start[1]}\n")
+        file.write(f"{end[0]},{end[1]}")
 
 
 def parse_config(filename: str) -> dict[str, str]:
@@ -32,13 +34,15 @@ def main() -> None:
         print('error arg')
         sys.exit(1)
     try:
-        config = parse_config(av[1])
         generator = MazeGenerator(height=20, width=20)
-        start = generator.start
-        end = generator.end
+        config = parse_config(av[1])
+        height = int(config['HEIGHT'])
+        width = int(config['WIDTH'])
         maze = generator.maze_gen()
-        hex_maze = generator.convert_hex_maze(maze)
-        output_maze(hex_maze, start, end)
+        start_pos = tuple(map(int, config['ENTRY'].split(',')))
+        end_pos = tuple(map(int, config['EXIT'].split(',')))
+        hex_map = generator.convert_hex_maze(maze)
+        output_maze(hex_map, start_pos, end_pos)
     except ValidationError as e:
         for error in e.errors():
             print(error['msg'])

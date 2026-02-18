@@ -62,7 +62,7 @@ class MazeGenerator(BaseModel):
                 end = True
             for i in maze:
                 screen.addstr(''.join(i) + '\n')
-            time.sleep(1/100)
+            time.sleep(1/60)
             screen.refresh()
             screen.clear()
         return maze
@@ -86,3 +86,14 @@ class MazeGenerator(BaseModel):
                 row.append(format(value, "X"))
             convert_line.append("".join(row))
         return convert_line
+
+#  end: tuple[int, int]
+    # def target_end(self, maze: list[list[str]]):
+    #     end = False
+    #     height = self.height * 2 + 1
+    #     width = self.width * 2 + 1
+    #     for x in range(1, height, 2):
+    #         for y in range(1, width, 2):
+    #             if maze[x][y] == "⬜":
+    #                 end = (x, y)
+    #     return end
