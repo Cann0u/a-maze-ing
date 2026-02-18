@@ -66,3 +66,23 @@ class MazeGenerator(BaseModel):
             screen.refresh()
             screen.clear()
         return maze
+
+    def convert_hex_maze(self, maze: list[list[str]]) -> list[list[str]]:
+        height = self.height * 2 + 1
+        width = self.width * 2 + 1
+        convert_line = []
+        for x in range(1, height, 2):
+            row = []
+            for y in range(1, width, 2):
+                value = 0
+                if maze[x - 1][y] == "⬛":
+                    value |= 1
+                if maze[x][y + 1] == "⬛":
+                    value |= 2
+                if maze[x + 1][y] == "⬛":
+                    value |= 4
+                if maze[x][y - 1] == "⬛":
+                    value |= 8
+                row.append(format(value, "X"))
+            convert_line.append("".join(row))
+        return convert_line

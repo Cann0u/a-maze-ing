@@ -1,4 +1,4 @@
-PYTHON = uv run
+PYTHON = uv run python3
 UV = uv
 MAIN_FILES = a_maze_ing.py
 CONFIG_FILE = config.txt
