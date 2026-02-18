@@ -140,5 +140,5 @@ class AStar:
                             cell_tab[new_i][new_j].parent_i = i
                             cell_tab[new_i][new_j].parent_j = j
         if not end:
-            print("j'aipastrouve")
+            print("j'ai pas trouve")
         return maze
