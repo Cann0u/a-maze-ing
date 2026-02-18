@@ -1,6 +1,9 @@
 import random
 import curses as cs
 import time
+from .astar import AStar
+
+__all__ = [AStar]
 
 
 class MazeGenerator:
@@ -58,6 +61,32 @@ class MazeGenerator:
             for j, l in enumerate(lst):
                 maze[start[0] + i][start[1] + j] = l
 
+    @staticmethod
+    def print_maze(screen, maze):
+        for y, row in enumerate(maze):
+            for x, char in enumerate(row):
+                if char == 0:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(1))
+                    except Exception:
+                        pass
+                elif char == 1:
+                    try:
+                        screen.addstr(
+                            y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
+                        )
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(3))
+                    except Exception:
+                        pass
+            try:
+                screen.addch("\n")
+            except Exception:
+                pass
+
     def maze_gen(self, screen) -> list[list[int]]:
         heigth = self.heigth * 2 + 1
         width = self.width * 2 + 1
@@ -98,29 +127,7 @@ class MazeGenerator:
                 end = True
             # for i in maze:
             #     screen.addstr(''.join(i) + '\n')
-            for y, row in enumerate(maze):
-                for x, char in enumerate(row):
-                    if char == 0:
-                        try:
-                            screen.addstr(y, x * 2, "██", cs.color_pair(1))
-                        except Exception:
-                            pass
-                    elif char == 1:
-                        try:
-                            screen.addstr(
-                                y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
-                            )
-                        except Exception:
-                            pass
-                    else:
-                        try:
-                            screen.addstr(y, x * 2, "██", cs.color_pair(3))
-                        except Exception:
-                            pass
-                try:
-                    screen.addch("\n")
-                except Exception:
-                    pass
+            self.print_maze(screen, maze)
             time.sleep(1 / 60)
             screen.refresh()
         screen.addstr("rentre une touche stp: ")
