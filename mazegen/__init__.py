@@ -29,6 +29,8 @@ class MazeGenerator:
         cs.init_pair(3, 9, -1)
         cs.init_pair(4, 6, -1)
         cs.init_pair(5, 2, -1)
+        cs.init_pair(6, 4, -1)
+        cs.init_pair(7, 11, -1)
 
     def set_fourty_two(self, maze: list[list[str]]):
         fourty_two = [
@@ -82,7 +84,21 @@ class MazeGenerator:
                         screen.addstr(y, x * 2, "██", cs.color_pair(5))
                     except Exception:
                         pass
-
+                elif char == 6:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(6))
+                    except Exception:
+                        pass
+                elif char == 7:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(7))
+                    except Exception:
+                        pass
+                elif char == 4:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(4))
+                    except Exception:
+                        pass
                 else:
                     try:
                         screen.addstr(y, x * 2, "██", cs.color_pair(3))

@@ -35,8 +35,8 @@ class AStar:
         x, y = curr
         d_x, d_y = tuple(map(lambda e: e // 2, direc))
         return (
-            maze[x - d_x][y - d_y] == 1
-            and maze[x - direc[0]][y - direc[1]] == 1
+            maze[x - d_x][y - d_y] != 0
+            and maze[x - direc[0]][y - direc[1]] != 0
         )
 
     def is_destination(self, row: int, col: int):
@@ -64,27 +64,29 @@ class AStar:
         path.reverse()
         prev = path[0]
         direc = [(-2, 0), (2, 0), (0, -2), (0, 2)]
-        maze[prev[0]][prev[1]] = 3
         for coord in path[1:]:
             i, j = coord
             for vis in direc:
                 if prev[0] + vis[0] == i and prev[1] + vis[1] == j:
                     maze[prev[0] + vis[0] // 2][prev[1] + vis[1] // 2] = 3
-            maze[i][j] = 3
-            MazeGenerator.print_maze(screen, maze)
-            time.sleep(1 / 60)
-            screen.refresh()
+            if maze[i][j] == 4:
+                maze[i][j] = 3
+            if screen is not None:
+                MazeGenerator.print_maze(screen, maze)
+                time.sleep(1 / 60)
+                screen.refresh()
             prev = coord
         string = ""
         for i in path:
             string += f"-> {path} "
         screen.getch()
 
-    def solve(self, screen, maze: list[list[int]]) -> list[list[int]]:
+    def solve(self, maze: list[list[int]], screen=None) -> list[list[int]]:
+        from mazegen import MazeGenerator
         heigth = len(maze)
         width = len(maze[0])
-        print(f"{heigth} {width}")
         direc = [(-2, 0), (2, 0), (0, -2), (0, 2)]
+        maze[self.start[0]][self.start[1]] = 6
         x, y = self.end
         if x >= heigth or y >= width:
             return "coubeh"
@@ -92,6 +94,7 @@ class AStar:
             return "Invalid end"
         if self.start == self.end:
             return maze
+        maze[x][y] = 7
         closed_cell = [[False for j in range(width)] for i in range(heigth)]
         cell_tab = [
             [self.Cells() for j in range(width)] for i in range(heigth)
@@ -118,6 +121,9 @@ class AStar:
                     and self.is_unblocked((new_i, new_j), maze, vis)
                     and not closed_cell[new_i][new_j]
                 ):
+                    maze[i + vis[0] // 2][j + vis[1] // 2] = 4
+                    if maze[new_i][new_j] == 1:
+                        maze[new_i][new_j] = 4
                     if self.is_destination(new_i, new_j):
                         end = True
                         cell_tab[new_i][new_j].parent_i = i
@@ -139,6 +145,10 @@ class AStar:
                             cell_tab[new_i][new_j].h = h_new
                             cell_tab[new_i][new_j].parent_i = i
                             cell_tab[new_i][new_j].parent_j = j
+                    if screen is not None:
+                        MazeGenerator.print_maze(screen, maze)
+                        time.sleep(1/60)
+                        screen.refresh()
         if not end:
             print("j'ai pas trouve")
         return maze
