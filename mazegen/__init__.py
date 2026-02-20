@@ -1,13 +1,17 @@
 import random
-import curses as cs
 import time
 from pydantic import BaseModel, Field, model_validator
+from .astar import AStar
+import curses as cs
+
+__all__ = [AStar]
 
 
 class MazeGenerator(BaseModel):
     height: int
     width: int
     start: tuple[int, int] = Field(default=(1, 1))
+    start = tuple(map(lambda e: e * 2 + 1, start))
 
     @model_validator(mode='after')
     def check_format(self) -> 'MazeGenerator':
@@ -21,36 +25,151 @@ class MazeGenerator(BaseModel):
         for _ in range(2):
             x, y = pos
             h, w = direc
-            maze[x + h][y + w] = "⬜"
+            maze[x + h][y + w] = 1
             pos = (x + h, y + w)
         return pos
 
-    def maze_gen(self) -> list[list[int]]:
-        height = self.height * 2 + 1
+    @staticmethod
+    def setup_colors():
+        cs.start_color()
+        cs.use_default_colors()
+        cs.init_pair(1, 8, -1)
+        cs.init_pair(2, 7, -1)
+        cs.init_pair(3, 9, -1)
+        cs.init_pair(4, 6, -1)
+        cs.init_pair(5, 2, -1)
+        cs.init_pair(6, 4, -1)
+        cs.init_pair(7, 11, -1)
+
+    @staticmethod
+    def clear(maze: list[list[int]]):
+        for i, row in enumerate(maze):
+            for j, col in enumerate(row):
+                if col == 3 or col == 4:
+                    maze[i][j] = 1
+
+    @staticmethod
+    def clear_path(maze: list[list[int]]):
+        for i, row in enumerate(maze):
+            for j, col in enumerate(row):
+                if col == 4:
+                    maze[i][j] = 1
+
+    def set_fourty_two(self, maze: list[list[str]]):
+        fourty_two = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 5, 0, 0, 0, 0, 0, 0, 0, 5, 0, 5, 0, 5, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 5, 0, 5, 0, 5, 0, 0, 0, 5, 0, 5, 0, 5, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 5, 0, 5, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+        heigth = self.heigth * 2 + 1
         width = self.width * 2 + 1
-        maze = [["⬛" for j in range(width)] for i in range(height)]
+        ft_heigth = len(fourty_two)
+        ft_width = len(fourty_two[0])
+        start = [
+            int(self.heigth - (ft_heigth - self.heigth % 2) / 2),
+            int(self.width - (ft_width - self.width % 2) / 2)
+        ]
+        if width <= ft_width:
+            return maze
+        if heigth <= ft_heigth:
+            return maze
+        for i, lst in enumerate(fourty_two):
+            for j, l in enumerate(lst):
+                maze[start[0] + i][start[1] + j] = l
+
+    @staticmethod
+    def print_maze(screen, maze, hide=False):
+        MazeGenerator.setup_colors()
+        for y, row in enumerate(maze):
+            for x, char in enumerate(row):
+                if char == 0:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(1))
+                    except Exception:
+                        pass
+                elif char == 1:
+                    try:
+                        screen.addstr(
+                            y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
+                        )
+                    except Exception:
+                        pass
+                elif char == 3:
+                    try:
+                        if hide:
+                            screen.addstr(
+                                y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
+                            )
+                        else:
+                            screen.addstr(y, x * 2, "██", cs.color_pair(3))
+                    except Exception:
+                        pass
+                elif char == 4:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(4))
+                    except Exception:
+                        pass
+                elif char == 5:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(5))
+                    except Exception:
+                        pass
+                elif char == 6:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(6))
+                    except Exception:
+                        pass
+                elif char == 7:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(7))
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(3))
+                    except Exception:
+                        pass
+            try:
+                screen.addch("\n")
+            except Exception:
+                pass
+
+    def maze_gen(self, screen=None) -> list[list[int]]:
+        heigth = self.heigth * 2 + 1
+        width = self.width * 2 + 1
+        maze = [[0 for j in range(width)] for i in range(heigth)]
         direc = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         end = False
-        prev = [(1, 1)]
-        curr = prev.pop()
+        prev = []
+        self.set_fourty_two(maze)
+        curr = self.start
+        if maze[curr[0]][curr[1]] != 0:
+            raise ValueError("invalid start")
         x, y = curr
-        maze[x][y] = "⬜"
-        screen = cs.initscr()
+        maze[x][y] = 1
         while not end:
             valid_pos = []
             for i, j in direc:
                 if (
                     i != 0
                     and curr[0] + i * 2 > 0
-                    and curr[0] + i * 2 < height
-                    and maze[curr[0] + i * 2][curr[1]] == "⬛"
+                    and curr[0] + i * 2 < heigth
+                    and maze[curr[0] + i * 2][curr[1]] == 0
                 ):
                     valid_pos.append((i, j))
                 if (
                     j != 0
                     and curr[1] + j * 2 > 0
                     and curr[1] + j * 2 < width
-                    and maze[curr[0]][curr[1] + j * 2] == "⬛"
+                    and maze[curr[0]][curr[1] + j * 2] == 0
                 ):
                     valid_pos.append((i, j))
             if len(valid_pos) == 0:
@@ -60,11 +179,10 @@ class MazeGenerator(BaseModel):
                 curr = self.break_wall(maze, curr, random.choice(valid_pos))
             if prev == []:
                 end = True
-            for i in maze:
-                screen.addstr(''.join(i) + '\n')
-            time.sleep(1/60)
-            screen.refresh()
-            screen.clear()
+            if screen is not None:
+                self.print_maze(screen, maze)
+                time.sleep(1 / 60)
+                screen.refresh()
         return maze
 
     def convert_hex_maze(self, maze: list[list[str]]) -> list[list[str]]:
