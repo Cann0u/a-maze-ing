@@ -1,20 +1,23 @@
 from mazegen import MazeGenerator
 from pydantic import ValidationError
-from dfs_path import DFS
 import sys
 import curses as cs
 import time
 
 
-def output_maze(lines: list[str], start: tuple[int, int],
-                end: tuple[int, int], path_find: str) -> None:
-    with open("output_maze.txt", 'w') as file:
+def output_maze(
+    lines: list[str],
+    start: tuple[int, int],
+    end: tuple[int, int],
+    path_find: str,
+) -> None:
+    with open("output_maze.txt", "w") as file:
         for line in lines:
             file.write(line + "\n")
         file.write("\n")
         file.write(f"{start[0]},{start[1]}\n")
         file.write(f"{end[0]},{end[1]}\n")
-        file.write("".join(path_find) + '\n')
+        file.write("".join(path_find) + "\n")
 
 
 def parse_config(filename: str) -> dict[str, str]:
@@ -77,7 +80,8 @@ class Visualizer:
             Button((len(maze) + 1, 0), "clear_path"),
             Button((len(maze) + 1, 20), "hide"),
             Button((len(maze) + 2, 0), "astar"),
-            Button((len(maze) + 2, 20), "regen"),
+            Button((len(maze) + 2, 20), "dfs"),
+            Button((len(maze) + 3, 0), "regen"),
         ]
         generator.clear(maze)
         hide = False
@@ -108,10 +112,17 @@ class Visualizer:
                         hide = not hide
                     case 4:
                         try:
-                            generator.solver.solve(maze, self.__screen)
+                            path = generator.solver.solve(maze, self.__screen)
                         except ValueError as e:
                             print(e)
                     case 5:
+                        try:
+                            path = generator.solver_bis.solve(
+                                maze, self.__screen
+                            )
+                        except ValueError as e:
+                            print(e)
+                    case 6:
                         maze = generator.maze_gen(self.__screen)
             if old_select != select:
                 buttons[old_select].toggle_focus()
@@ -124,7 +135,7 @@ class Visualizer:
         cs.echo()
         cs.endwin()
         hex_map = generator.convert_hex_maze(maze)
-        output_maze(hex_map, generator.start_pos, generator.end_pos)
+        output_maze(hex_map, generator.start_pos, generator.end_pos, path)
 
 
 def main() -> None:

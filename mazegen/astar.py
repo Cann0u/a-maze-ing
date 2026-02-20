@@ -76,8 +76,9 @@ class AStar:
                 time.sleep(1 / 60)
                 screen.refresh()
             prev = coord
+        return path
 
-    def solve(self, maze: list[list[int]], screen=None) -> list[list[int]]:
+    def solve(self, maze: list[list[int]], screen=None) -> list[int]:
         from mazegen import MazeGenerator
 
         print(self.start)
@@ -129,8 +130,7 @@ class AStar:
                         end = True
                         cell_tab[new_i][new_j].parent_i = i
                         cell_tab[new_i][new_j].parent_j = j
-                        self.trace_path(screen, cell_tab, maze)
-                        return maze
+                        return self.trace_path(screen, cell_tab, maze)
                     else:
                         g_new = cell_tab[i][j].g + 1.0
                         h_new = self.calculate_h_value(new_i, new_j)

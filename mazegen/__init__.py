@@ -3,6 +3,7 @@ import time
 from pydantic import BaseModel, Field, model_validator
 from .astar import AStar
 import curses as cs
+from .dfs_path import DFS
 
 __all__ = [AStar]
 
@@ -17,6 +18,10 @@ class MazeGenerator(BaseModel):
     @property
     def solver(self):
         return AStar(self.start_pos, self.end_pos)
+
+    @property
+    def solver_bis(self):
+        return DFS(self.start_pos, self.end_pos)
 
     @property
     def start(self):
