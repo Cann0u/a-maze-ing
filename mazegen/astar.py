@@ -76,10 +76,6 @@ class AStar:
                 time.sleep(1 / 60)
                 screen.refresh()
             prev = coord
-        string = ""
-        for i in path:
-            string += f"-> {path} "
-        screen.getch()
 
     def solve(self, maze: list[list[int]], screen=None) -> list[list[int]]:
         from mazegen import MazeGenerator
@@ -89,9 +85,12 @@ class AStar:
         maze[self.start[0]][self.start[1]] = 6
         x, y = self.end
         if x >= heigth or y >= width:
-            return "coubeh"
-        if maze[self.end[0]][self.end[1]] != 1:
-            return "Invalid end"
+            raise ValueError("Invalid end coordinate")
+        if (
+            maze[self.end[0]][self.end[1]] != 1
+            and maze[self.end[0]][self.end[1]] != 7
+        ):
+            raise ValueError("Invalid end coordinate")
         if self.start == self.end:
             return maze
         maze[x][y] = 7
@@ -122,13 +121,12 @@ class AStar:
                     and not closed_cell[new_i][new_j]
                 ):
                     maze[i + vis[0] // 2][j + vis[1] // 2] = 4
-                    if maze[new_i][new_j] == 1:
+                    if maze[new_i][new_j] != 7:
                         maze[new_i][new_j] = 4
                     if self.is_destination(new_i, new_j):
                         end = True
                         cell_tab[new_i][new_j].parent_i = i
                         cell_tab[new_i][new_j].parent_j = j
-                        print("The destination cell is found")
                         self.trace_path(screen, cell_tab, maze)
                         return maze
                     else:
@@ -150,5 +148,5 @@ class AStar:
                         time.sleep(1/60)
                         screen.refresh()
         if not end:
-            print("j'ai pas trouve")
+            print("where am i ?")
         return maze

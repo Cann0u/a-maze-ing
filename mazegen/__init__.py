@@ -1,7 +1,7 @@
 import random
-import curses as cs
 import time
 from .astar import AStar
+import curses as cs
 
 __all__ = [AStar]
 
@@ -21,7 +21,8 @@ class MazeGenerator:
             pos = (x + h, y + w)
         return pos
 
-    def setup_colors(self):
+    @staticmethod
+    def setup_colors():
         cs.start_color()
         cs.use_default_colors()
         cs.init_pair(1, 8, -1)
@@ -31,6 +32,20 @@ class MazeGenerator:
         cs.init_pair(5, 2, -1)
         cs.init_pair(6, 4, -1)
         cs.init_pair(7, 11, -1)
+
+    @staticmethod
+    def clear(maze: list[list[int]]):
+        for i, row in enumerate(maze):
+            for j, col in enumerate(row):
+                if col == 3 or col == 4:
+                    maze[i][j] = 1
+
+    @staticmethod
+    def clear_path(maze: list[list[int]]):
+        for i, row in enumerate(maze):
+            for j, col in enumerate(row):
+                if col == 4:
+                    maze[i][j] = 1
 
     def set_fourty_two(self, maze: list[list[str]]):
         fourty_two = [
@@ -54,7 +69,6 @@ class MazeGenerator:
             int(self.heigth - (ft_heigth - self.heigth % 2) / 2),
             int(self.width - (ft_width - self.width % 2) / 2)
         ]
-        print(start)
         if width <= ft_width:
             return maze
         if heigth <= ft_heigth:
@@ -64,7 +78,8 @@ class MazeGenerator:
                 maze[start[0] + i][start[1] + j] = l
 
     @staticmethod
-    def print_maze(screen, maze):
+    def print_maze(screen, maze, hide=False):
+        MazeGenerator.setup_colors()
         for y, row in enumerate(maze):
             for x, char in enumerate(row):
                 if char == 0:
@@ -77,6 +92,21 @@ class MazeGenerator:
                         screen.addstr(
                             y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
                         )
+                    except Exception:
+                        pass
+                elif char == 3:
+                    try:
+                        if hide:
+                            screen.addstr(
+                                y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
+                            )
+                        else:
+                            screen.addstr(y, x * 2, "██", cs.color_pair(3))
+                    except Exception:
+                        pass
+                elif char == 4:
+                    try:
+                        screen.addstr(y, x * 2, "██", cs.color_pair(4))
                     except Exception:
                         pass
                 elif char == 5:
@@ -94,11 +124,6 @@ class MazeGenerator:
                         screen.addstr(y, x * 2, "██", cs.color_pair(7))
                     except Exception:
                         pass
-                elif char == 4:
-                    try:
-                        screen.addstr(y, x * 2, "██", cs.color_pair(4))
-                    except Exception:
-                        pass
                 else:
                     try:
                         screen.addstr(y, x * 2, "██", cs.color_pair(3))
@@ -109,7 +134,7 @@ class MazeGenerator:
             except Exception:
                 pass
 
-    def maze_gen(self, screen) -> list[list[int]]:
+    def maze_gen(self, screen=None) -> list[list[int]]:
         heigth = self.heigth * 2 + 1
         width = self.width * 2 + 1
         maze = [[0 for j in range(width)] for i in range(heigth)]
@@ -122,7 +147,6 @@ class MazeGenerator:
             raise ValueError("invalid start")
         x, y = curr
         maze[x][y] = 1
-        self.setup_colors()
         while not end:
             valid_pos = []
             for i, j in direc:
@@ -147,16 +171,8 @@ class MazeGenerator:
                 curr = self.break_wall(maze, curr, random.choice(valid_pos))
             if prev == []:
                 end = True
-            # for i in maze:
-            #     screen.addstr(''.join(i) + '\n')
-            self.print_maze(screen, maze)
-            time.sleep(1 / 60)
-            screen.refresh()
-        screen.addstr("rentre une touche stp: ")
-        screen.getch()
-        screen.clear()
-        # cs.nocbreak()
-        # screen.keypad(False)
-        # cs.echo()
-        # cs.endwin()
+            if screen is not None:
+                self.print_maze(screen, maze)
+                time.sleep(1 / 60)
+                screen.refresh()
         return maze
