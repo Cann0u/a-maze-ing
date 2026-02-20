@@ -1,19 +1,20 @@
 from mazegen import MazeGenerator
 from pydantic import ValidationError
+from dfs_path import DFS
 import sys
 import curses as cs
 import time
 
 
-def output_maze(
-    lines: list[str], start: tuple[int, int], end: tuple[int, int]
-) -> None:
-    with open("output_maze.txt", "w") as file:
+def output_maze(lines: list[str], start: tuple[int, int],
+                end: tuple[int, int], path_find: str) -> None:
+    with open("output_maze.txt", 'w') as file:
         for line in lines:
             file.write(line + "\n")
         file.write("\n")
         file.write(f"{start[0]},{start[1]}\n")
-        file.write(f"{end[0]},{end[1]}")
+        file.write(f"{end[0]},{end[1]}\n")
+        file.write("".join(path_find) + '\n')
 
 
 def parse_config(filename: str) -> dict[str, str]:
@@ -122,6 +123,8 @@ class Visualizer:
         self.__screen.keypad(False)
         cs.echo()
         cs.endwin()
+        hex_map = generator.convert_hex_maze(maze)
+        output_maze(hex_map, generator.start_pos, generator.end_pos)
 
 
 def main() -> None:
@@ -139,9 +142,6 @@ def main() -> None:
         generator = MazeGenerator(
             height=height, width=width, start_pos=start_pos, end_pos=end_pos
         )
-        maze = generator.maze_gen()
-        hex_map = generator.convert_hex_maze(maze)
-        output_maze(hex_map, start_pos, end_pos)
         visu = Visualizer()
         visu.render(generator)
     except ValidationError as e:

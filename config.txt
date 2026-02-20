@@ -10,6 +10,7 @@ ENTRY=1,1
 #Exit coordinates (x,y):
 EXIT=14,14
 
+
 #Output filename:
 OUTPUT_FILE=maze.txt
 
