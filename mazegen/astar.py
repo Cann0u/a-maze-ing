@@ -15,8 +15,8 @@ class AStar:
 
     class Cells:
         def __init__(self):
-            self.parent_i = 0
-            self.parent_j = 0
+            self.parent_i = -1
+            self.parent_j = -1
             self.f = float("inf")
             self.g = float("inf")
             self.h = 0
@@ -42,15 +42,16 @@ class AStar:
     def is_destination(self, row: int, col: int):
         return row == self.end[0] and col == self.end[1]
 
-    def trace_path(
-        self, screen, cell_tab: list[list[Cells]], maze: list[list[int]]
-    ):
+    def trace_path(self, screen, cell_tab: list[list[Cells]],
+                   maze: list[list[int]]):
         from mazegen import MazeGenerator
-
         path = []
         row = self.end[0]
         col = self.end[1]
-
+        moove_matrix = {(-2, 0): "N",
+                        (2, 0): "S",
+                        (0, -2): "W",
+                        (0, 2): "E"}
         while not (
             cell_tab[row][col].parent_i == row
             and cell_tab[row][col].parent_j == col
@@ -62,21 +63,23 @@ class AStar:
             col = temp_col
         path.append((row, col))
         path.reverse()
-        prev = path[0]
-        direc = [(-2, 0), (2, 0), (0, -2), (0, 2)]
-        for coord in path[1:]:
-            i, j = coord
-            for vis in direc:
-                if prev[0] + vis[0] == i and prev[1] + vis[1] == j:
-                    maze[prev[0] + vis[0] // 2][prev[1] + vis[1] // 2] = 3
-            if maze[i][j] == 4:
-                maze[i][j] = 3
+        path_coord = []
+        for i in range(len(path) - 1):
+            x1, y1 = path[i]
+            x2, y2 = path[i + 1]
+            move = (x2 - x1, y2 - y1)
+            if move in moove_matrix:
+                path_coord.append(moove_matrix[move])
+                pos_x = (x1 + x2) // 2
+                pos_y = (y1 + y2) // 2
+                maze[pos_x][pos_y] = 3
+                if maze[x2][y2] == 4:
+                    maze[x2][y2] = 3
             if screen is not None:
                 MazeGenerator.print_maze(screen, maze)
                 time.sleep(1 / 60)
                 screen.refresh()
-            prev = coord
-        return path
+        return path_coord
 
     def solve(self, maze: list[list[int]], screen=None) -> list[int]:
         from mazegen import MazeGenerator
@@ -151,4 +154,4 @@ class AStar:
                         screen.refresh()
         if not end:
             print("where am i ?")
-        return maze
+        return []

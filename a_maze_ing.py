@@ -109,11 +109,13 @@ class Visualizer:
                         hide = not hide
                     case 4:
                         try:
+                            generator.clear_path(maze)
                             path = generator.solver.solve(maze, self.__screen)
                         except ValueError as e:
                             print(e)
                     case 5:
                         try:
+                            generator.clear_path(maze)
                             path = generator.solver_bis.solve(
                                 maze, self.__screen
                             )
@@ -132,7 +134,12 @@ class Visualizer:
         cs.echo()
         cs.endwin()
         hex_map = generator.convert_hex_maze(maze)
-        output_maze(hex_map, generator.start_pos, generator.end_pos, path)
+        if path is None:
+            find_path = []
+        else:
+            find_path = path
+        output_maze(hex_map, generator.start_pos, generator.end_pos, find_path)
+        print(find_path)
 
 
 def main() -> None:
