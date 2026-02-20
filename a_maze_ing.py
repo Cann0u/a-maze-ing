@@ -1,29 +1,29 @@
 from mazegen import MazeGenerator
 from pydantic import ValidationError
 import sys
-from mazegen import AStar
 import curses as cs
 import time
 
 
-def output_maze(lines: list[str], start: tuple[int, int],
-                end: tuple[int, int]) -> None:
-    with open("output_maze.txt", 'w') as file:
+def output_maze(
+    lines: list[str], start: tuple[int, int], end: tuple[int, int]
+) -> None:
+    with open("output_maze.txt", "w") as file:
         for line in lines:
-            file.write(line + '\n')
-        file.write('\n')
+            file.write(line + "\n")
+        file.write("\n")
         file.write(f"{start[0]},{start[1]}\n")
         file.write(f"{end[0]},{end[1]}")
 
 
 def parse_config(filename: str) -> dict[str, str]:
     read_file = {}
-    with open(filename, 'r') as file:
+    with open(filename, "r") as file:
         for line in file:
             line = line.strip()
-            if not line or line.startswith('#'):
+            if not line or line.startswith("#"):
                 continue
-            key, value = line.split('=', 1)
+            key, value = line.split("=", 1)
             read_file[key] = value
         return read_file
 
@@ -78,7 +78,6 @@ class Visualizer:
             Button((len(maze) + 2, 0), "astar"),
             Button((len(maze) + 2, 20), "regen"),
         ]
-        solver = AStar((0, 0), (9, 9))
         generator.clear(maze)
         hide = False
         select = 0
@@ -107,7 +106,10 @@ class Visualizer:
                     case 3:
                         hide = not hide
                     case 4:
-                        solver.solve(maze, self.__screen)
+                        try:
+                            generator.solver.solve(maze, self.__screen)
+                        except ValueError as e:
+                            print(e)
                     case 5:
                         maze = generator.maze_gen(self.__screen)
             if old_select != select:
@@ -126,23 +128,25 @@ def main() -> None:
     av = sys.argv
     ac = len(av)
     if ac != 2:
-        print('error arg')
+        print("error arg")
         sys.exit(1)
     try:
-        generator = MazeGenerator(height=20, width=20)
-        visu = Visualizer()
-        visu.render(generator)
         config = parse_config(av[1])
-        # height = int(config['HEIGHT'])
-        # width = int(config['WIDTH'])
+        height = int(config["HEIGHT"])
+        width = int(config["WIDTH"])
+        start_pos = tuple(map(int, config["ENTRY"].split(",")))
+        end_pos = tuple(map(int, config["EXIT"].split(",")))
+        generator = MazeGenerator(
+            height=height, width=width, start_pos=start_pos, end_pos=end_pos
+        )
         maze = generator.maze_gen()
-        start_pos = tuple(map(int, config['ENTRY'].split(',')))
-        end_pos = tuple(map(int, config['EXIT'].split(',')))
         hex_map = generator.convert_hex_maze(maze)
         output_maze(hex_map, start_pos, end_pos)
+        visu = Visualizer()
+        visu.render(generator)
     except ValidationError as e:
         for error in e.errors():
-            print(error['msg'])
+            print(error["msg"])
 
 
 main()

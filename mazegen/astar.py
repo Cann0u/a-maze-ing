@@ -79,12 +79,14 @@ class AStar:
 
     def solve(self, maze: list[list[int]], screen=None) -> list[list[int]]:
         from mazegen import MazeGenerator
-        heigth = len(maze)
+
+        print(self.start)
+        height = len(maze)
         width = len(maze[0])
         direc = [(-2, 0), (2, 0), (0, -2), (0, 2)]
         maze[self.start[0]][self.start[1]] = 6
         x, y = self.end
-        if x >= heigth or y >= width:
+        if x >= height or y >= width:
             raise ValueError("Invalid end coordinate")
         if (
             maze[self.end[0]][self.end[1]] != 1
@@ -94,9 +96,9 @@ class AStar:
         if self.start == self.end:
             return maze
         maze[x][y] = 7
-        closed_cell = [[False for j in range(width)] for i in range(heigth)]
+        closed_cell = [[False for j in range(width)] for i in range(height)]
         cell_tab = [
-            [self.Cells() for j in range(width)] for i in range(heigth)
+            [self.Cells() for j in range(width)] for i in range(height)
         ]
         i, j = self.start
         cell_tab[i][j].parent_i = i
@@ -116,7 +118,7 @@ class AStar:
                 new_i = i + vis[0]
                 new_j = j + vis[1]
                 if (
-                    self.is_valid(new_i, new_j, (heigth, width))
+                    self.is_valid(new_i, new_j, (height, width))
                     and self.is_unblocked((new_i, new_j), maze, vis)
                     and not closed_cell[new_i][new_j]
                 ):
@@ -145,7 +147,7 @@ class AStar:
                             cell_tab[new_i][new_j].parent_j = j
                     if screen is not None:
                         MazeGenerator.print_maze(screen, maze)
-                        time.sleep(1/60)
+                        time.sleep(1 / 60)
                         screen.refresh()
         if not end:
             print("where am i ?")

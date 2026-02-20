@@ -8,17 +8,30 @@ __all__ = [AStar]
 
 
 class MazeGenerator(BaseModel):
-    height: int
-    width: int
-    start: tuple[int, int] = Field(default=(1, 1))
-    start = tuple(map(lambda e: e * 2 + 1, start))
+    height: int = Field(default=2)
+    width: int = Field(default=2)
+    start_pos: tuple[int, int] = Field(default=(0, 0))
+    end_pos: tuple[int, int] = Field(default=(1, 1))
+    perfect: bool = True
 
-    @model_validator(mode='after')
-    def check_format(self) -> 'MazeGenerator':
+    @property
+    def solver(self):
+        return AStar(self.start_pos, self.end_pos)
+
+    @property
+    def start(self):
+        return (self.start_pos[0] * 2 + 1, self.start_pos[1] * 2 + 1)
+
+    @property
+    def end(self):
+        return (self.end_pos[0] * 2 + 1, self.end_pos[1] * 2 + 1)
+
+    @model_validator(mode="after")
+    def check_format(self) -> "MazeGenerator":
         if self.height < 2 or self.width < 2:
-            raise ValueError('invalid maze format')
+            raise ValueError("invalid maze format")
         if not self.start:
-            raise ValueError('invalid start position')
+            raise ValueError("invalid start position")
         return self
 
     def break_wall(self, maze, pos, direc):
@@ -69,17 +82,17 @@ class MazeGenerator(BaseModel):
             [0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 5, 0, 5, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
-        heigth = self.heigth * 2 + 1
+        height = self.height * 2 + 1
         width = self.width * 2 + 1
-        ft_heigth = len(fourty_two)
+        ft_height = len(fourty_two)
         ft_width = len(fourty_two[0])
         start = [
-            int(self.heigth - (ft_heigth - self.heigth % 2) / 2),
-            int(self.width - (ft_width - self.width % 2) / 2)
+            int(self.height - (ft_height - self.height % 2) / 2),
+            int(self.width - (ft_width - self.width % 2) / 2),
         ]
         if width <= ft_width:
             return maze
-        if heigth <= ft_heigth:
+        if height <= ft_height:
             return maze
         for i, lst in enumerate(fourty_two):
             for j, l in enumerate(lst):
@@ -143,9 +156,9 @@ class MazeGenerator(BaseModel):
                 pass
 
     def maze_gen(self, screen=None) -> list[list[int]]:
-        heigth = self.heigth * 2 + 1
+        height = self.height * 2 + 1
         width = self.width * 2 + 1
-        maze = [[0 for j in range(width)] for i in range(heigth)]
+        maze = [[0 for j in range(width)] for i in range(height)]
         direc = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         end = False
         prev = []
@@ -161,7 +174,7 @@ class MazeGenerator(BaseModel):
                 if (
                     i != 0
                     and curr[0] + i * 2 > 0
-                    and curr[0] + i * 2 < heigth
+                    and curr[0] + i * 2 < height
                     and maze[curr[0] + i * 2][curr[1]] == 0
                 ):
                     valid_pos.append((i, j))
@@ -205,13 +218,14 @@ class MazeGenerator(BaseModel):
             convert_line.append("".join(row))
         return convert_line
 
+
 #  end: tuple[int, int]
-    # def target_end(self, maze: list[list[str]]):
-    #     end = False
-    #     height = self.height * 2 + 1
-    #     width = self.width * 2 + 1
-    #     for x in range(1, height, 2):
-    #         for y in range(1, width, 2):
-    #             if maze[x][y] == "⬜":
-    #                 end = (x, y)
-    #     return end
+# def target_end(self, maze: list[list[str]]):
+#     end = False
+#     height = self.height * 2 + 1
+#     width = self.width * 2 + 1
+#     for x in range(1, height, 2):
+#         for y in range(1, width, 2):
+#             if maze[x][y] == "⬜":
+#                 end = (x, y)
+#     return end
