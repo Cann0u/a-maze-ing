@@ -70,8 +70,6 @@ class DFS:
             d_x, d_y = moove_matrix[coord]
             x += d_x
             y += d_y
-            if maze[x][y] == 4:
-                maze[x][y] = 3
             MazeGenerator.print_maze(screen, maze)
             time.sleep(1/60)
             screen.refresh()

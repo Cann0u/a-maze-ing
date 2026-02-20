@@ -112,7 +112,6 @@ class AStar:
         cell_tab[i][j].h = 0
         cell_open = []
         heapq.heappush(cell_open, (0.0, i, j))
-        end = False
         while len(cell_open) > 0:
             p = heapq.heappop(cell_open)
             i = p[1]
@@ -130,7 +129,6 @@ class AStar:
                     if maze[new_i][new_j] != 7:
                         maze[new_i][new_j] = 4
                     if self.is_destination(new_i, new_j):
-                        end = True
                         cell_tab[new_i][new_j].parent_i = i
                         cell_tab[new_i][new_j].parent_j = j
                         return self.trace_path(screen, cell_tab, maze)
@@ -152,6 +150,4 @@ class AStar:
                         MazeGenerator.print_maze(screen, maze)
                         time.sleep(1 / 60)
                         screen.refresh()
-        if not end:
-            print("where am i ?")
         return []

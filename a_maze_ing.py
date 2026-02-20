@@ -139,7 +139,7 @@ class Visualizer:
         else:
             find_path = path
         output_maze(hex_map, generator.start_pos, generator.end_pos, find_path)
-        print(find_path)
+        # print(find_path)
 
 
 def main() -> None:
