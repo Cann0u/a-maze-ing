@@ -206,13 +206,13 @@ class MazeGenerator(BaseModel):
             row = []
             for y in range(1, width, 2):
                 value = 0
-                if maze[x - 1][y] == "⬛":
+                if maze[x - 1][y] == 0:
                     value |= 1
-                if maze[x][y + 1] == "⬛":
+                if maze[x][y + 1] == 0:
                     value |= 2
-                if maze[x + 1][y] == "⬛":
+                if maze[x + 1][y] == 0:
                     value |= 4
-                if maze[x][y - 1] == "⬛":
+                if maze[x][y - 1] == 0:
                     value |= 8
                 row.append(format(value, "X"))
             convert_line.append("".join(row))
