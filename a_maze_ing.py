@@ -1,8 +1,8 @@
 from mazegen import MazeGenerator
 from pydantic import ValidationError
-import sys
 import curses as cs
 import time
+import sys
 
 
 def output_maze(lines: list[str], start: tuple[int, int], end: tuple[int, int],
@@ -26,6 +26,15 @@ def parse_config(filename: str) -> dict[str, str]:
             key, value = line.split("=", 1)
             read_file[key] = value
         return read_file
+
+
+def update_ouput(generator: MazeGenerator, maze):
+    hex_map = generator.convert_hex_maze(maze)
+    short_path = ShortPath.shortest_path(generator, maze)
+    if short_path:
+        output_map = output_maze(hex_map, generator.start_pos,
+                                 generator.end_pos, short_path)
+    return output_map
 
 
 class Button:
@@ -63,12 +72,12 @@ class Visualizer:
         return self.__screen
 
     def render(self, generator: MazeGenerator):
-        path = []
         cs.curs_set(0)
         cs.noecho()
         self.__screen.keypad(True)
         try:
             maze = generator.maze_gen(self.__screen)
+            update_ouput(generator, maze)
         except ValueError as e:
             print(e)
         buttons = [
@@ -110,19 +119,20 @@ class Visualizer:
                     case 4:
                         try:
                             generator.clear_path(maze)
-                            path = generator.solver.solve(maze, self.__screen)
+                            generator.solver_astar.solve(maze, self.__screen)
+                            update_ouput(generator, maze)
                         except ValueError as e:
                             print(e)
                     case 5:
                         try:
                             generator.clear_path(maze)
-                            path = generator.solver_bis.solve(
-                                maze, self.__screen
-                            )
+                            generator.solver_dfs.solve(maze, self.__screen)
+                            update_ouput(generator, maze)
                         except ValueError as e:
                             print(e)
                     case 6:
                         maze = generator.maze_gen(self.__screen)
+                        update_ouput(generator, maze)
             if old_select != select:
                 buttons[old_select].toggle_focus()
                 buttons[select].toggle_focus()
@@ -133,13 +143,20 @@ class Visualizer:
         self.__screen.keypad(False)
         cs.echo()
         cs.endwin()
-        hex_map = generator.convert_hex_maze(maze)
-        if path is None:
-            find_path = []
-        else:
-            find_path = path
-        output_maze(hex_map, generator.start_pos, generator.end_pos, find_path)
-        # print(find_path)
+        update_ouput(generator, maze)
+
+
+class ShortPath:
+
+    @staticmethod
+    def shortest_path(generator: MazeGenerator, maze):
+        try:
+            generator.clear_path(maze)
+            astar_path = generator.solver_astar.solve(maze)
+            shortest = astar_path
+        except ValueError:
+            print('path is invalid')
+        return shortest
 
 
 def main() -> None:

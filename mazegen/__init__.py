@@ -16,11 +16,11 @@ class MazeGenerator(BaseModel):
     perfect: bool = True
 
     @property
-    def solver(self):
+    def solver_astar(self):
         return AStar(self.start_pos, self.end_pos)
 
     @property
-    def solver_bis(self):
+    def solver_dfs(self):
         return DFS(self.start_pos, self.end_pos)
 
     @property
@@ -104,7 +104,7 @@ class MazeGenerator(BaseModel):
                 maze[start[0] + i][start[1] + j] = l
 
     @staticmethod
-    def print_maze(screen, maze, hide=False):
+    def print_maze(screen, maze, hide=False, path=None):
         MazeGenerator.setup_colors()
         for y, row in enumerate(maze):
             for x, char in enumerate(row):
@@ -155,10 +155,10 @@ class MazeGenerator(BaseModel):
                         screen.addstr(y, x * 2, "██", cs.color_pair(3))
                     except Exception:
                         pass
-            try:
-                screen.addch("\n")
-            except Exception:
-                pass
+                try:
+                    screen.addch("\n")
+                except Exception:
+                    pass
 
     def maze_gen(self, screen=None) -> list[list[int]]:
         height = self.height * 2 + 1
