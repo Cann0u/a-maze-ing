@@ -84,7 +84,6 @@ class AStar:
     def solve(self, maze: list[list[int]], screen=None) -> list[int]:
         from mazegen import MazeGenerator
 
-        print(self.start)
         height = len(maze)
         width = len(maze[0])
         direc = [(-2, 0), (2, 0), (0, -2), (0, 2)]
