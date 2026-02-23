@@ -69,6 +69,8 @@ class Visualizer:
         self.__screen.keypad(True)
         try:
             maze = generator.maze_gen(self.__screen)
+            generator.solver.solve(maze, self.__screen)
+            generator.clear_path(maze)
         except ValueError as e:
             print(e)
         buttons = [
@@ -80,7 +82,6 @@ class Visualizer:
             Button((len(maze) + 2, 20), "dfs"),
             Button((len(maze) + 3, 0), "regen"),
         ]
-        generator.clear(maze)
         hide = False
         select = 0
         buttons[0].toggle_focus()
@@ -110,6 +111,7 @@ class Visualizer:
                     case 4:
                         try:
                             path = generator.solver.solve(maze, self.__screen)
+                            generator.clear_path(maze)
                         except ValueError as e:
                             print(e)
                     case 5:
@@ -117,6 +119,7 @@ class Visualizer:
                             path = generator.solver_bis.solve(
                                 maze, self.__screen
                             )
+                            generator.clear_path(maze)
                         except ValueError as e:
                             print(e)
                     case 6:

@@ -12,6 +12,8 @@ class AStar:
     def __init__(self, start: tuple[int, int], end: tuple[int, int]):
         self.start = tuple(map(lambda e: e * 2 + 1, start))
         self.end = tuple(map(lambda e: e * 2 + 1, end))
+        self.start = (self.start[1], self.start[0])
+        self.end = (self.end[1], self.end[0])
 
     class Cells:
         def __init__(self):

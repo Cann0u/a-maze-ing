@@ -25,22 +25,23 @@ class DFS:
                 pos_x = current_node[0] + m_x
                 pos_y = current_node[1] + m_y
                 if (
+                    maze_matrix[pos_x][pos_y] == 1
+                    or maze_matrix[pos_x][pos_y] == 3
+                ):
+                    maze_matrix[pos_x][pos_y] = 4
+                if screen is not None:
+                    MazeGenerator.print_maze(screen, maze_matrix)
+                    time.sleep(1 / 60)
+                    screen.refresh()
+                if (
                     0 <= pos_x < len(maze_matrix)
                     and 0 <= pos_y < len(maze_matrix[0])
                     and maze_matrix[pos_x][pos_y] != 0
                 ):
                     if (pos_x, pos_y) not in is_visit:
                         is_visit.add((pos_x, pos_y))
-                        if (
-                            maze_matrix[pos_x][pos_y] == 1
-                            or maze_matrix[pos_x][pos_y] == 3
-                        ):
-                            maze_matrix[pos_x][pos_y] = 4
                         coord_path = current_path + [direction]
                         stack.append(((pos_x, pos_y), coord_path))
-                        MazeGenerator.print_maze(screen, maze_matrix)
-                        time.sleep(1/60)
-                        screen.refresh()
 
         return []
 

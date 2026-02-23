@@ -25,11 +25,11 @@ class MazeGenerator(BaseModel):
 
     @property
     def start(self):
-        return (self.start_pos[0] * 2 + 1, self.start_pos[1] * 2 + 1)
+        return (self.start_pos[1] * 2 + 1, self.start_pos[0] * 2 + 1)
 
     @property
     def end(self):
-        return (self.end_pos[0] * 2 + 1, self.end_pos[1] * 2 + 1)
+        return (self.end_pos[1] * 2 + 1, self.end_pos[0] * 2 + 1)
 
     @model_validator(mode="after")
     def check_format(self) -> "MazeGenerator":
