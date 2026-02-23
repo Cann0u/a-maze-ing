@@ -5,12 +5,8 @@ import curses as cs
 import time
 
 
-def output_maze(
-    lines: list[str],
-    start: tuple[int, int],
-    end: tuple[int, int],
-    path_find: str,
-) -> None:
+def output_maze(lines: list[str], start: tuple[int, int], end: tuple[int, int],
+                path_find: str) -> None:
     with open("output_maze.txt", "w") as file:
         for line in lines:
             file.write(line + "\n")
@@ -67,6 +63,7 @@ class Visualizer:
         return self.__screen
 
     def render(self, generator: MazeGenerator):
+        path = []
         cs.curs_set(0)
         cs.noecho()
         self.__screen.keypad(True)
