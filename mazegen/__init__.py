@@ -9,8 +9,8 @@ __all__ = [AStar]
 
 
 class MazeGenerator(BaseModel):
-    height: int = Field(default=2)
-    width: int = Field(default=2)
+    height: int = Field(ge=2, default=2)
+    width: int = Field(ge=2, default=2)
     start_pos: tuple[int, int] = Field(default=(0, 0))
     end_pos: tuple[int, int] = Field(default=(1, 1))
     perfect: bool = False
@@ -169,14 +169,19 @@ class MazeGenerator(BaseModel):
         maze = [[0 for j in range(width)] for i in range(height)]
         direc = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         x, y = self.end
-        if x >= height or y >= width:
+        if (x >= height or y >= width) or (x < 0 or y < 0):
             raise ValueError("Invalid end coordinate")
         x, y = self.start
-        if x >= height or y >= width:
+        if (x >= height or y >= width) or (x < 0 or y < 0):
             raise ValueError("Invalid start coordinate")
         end = False
         prev = []
         self.set_fourty_two(maze)
+        if maze[x][y] == 5:
+            raise ValueError("Invalid start coordinate")
+        x, y = self.end
+        if maze[x][y] == 5:
+            raise ValueError("Invalid end coordinate")
         curr = self.start
         x, y = curr
         maze[x][y] = 1
@@ -209,21 +214,39 @@ class MazeGenerator(BaseModel):
                 time.sleep(1 / 60)
                 screen.refresh()
         if not self.perfect:
-            for i, row in enumerate(maze):
-                for j, col in enumerate(row):
-                    if col == 1:
+            for i in range(1, len(maze), 2):
+                for j in range(1, len(maze[i]), 2):
+                    if maze[i][j] == 1:
                         if (
                             height - 2 > i > 1
                             and 1 < j < width - 2
-                            and random.randint(0, 50) <= 2
+                            and random.randint(0, 10) <= 2
                         ):
                             y, x = random.choice(direc)
-                            if maze[i + y * 2][j + x * 2] != 5:
-                                maze[i + y][j + x] = 1
-                        if screen is not None:
-                            self.print_maze(screen, maze)
-                            time.sleep(1 / 60)
-                            screen.refresh()
+                            if (
+                                maze[i + y * 2][j + x * 2] == 1
+                                # and maze[i + y * 2 + x][j + x * 2 + y] == 1
+                                # and maze[i + y * 2 - x][j + x * 2 - y] == 1
+                            ):
+                                maze[i][j] = 1
+            for i, row in enumerate(maze):
+                for j, col in enumerate(row):
+                    if (
+                        height - 2 > i > 1
+                        and 1 < j < width - 2
+                    ):
+                        if (
+                            col == 0
+                            and maze[i - 1][j] == 1
+                            and maze[i + 1][j] == 1
+                            and maze[i][j - 1] == 1
+                            and maze[i][j + 1] == 1
+                        ):
+                            maze[i][j] = 1
+            if screen is not None:
+                self.print_maze(screen, maze)
+                time.sleep(1 / 60)
+                screen.refresh()
         y, x = self.start
         maze[y][x] = 6
         maze[self.end[0]][self.end[1]] = 7

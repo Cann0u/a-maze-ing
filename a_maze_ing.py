@@ -153,8 +153,8 @@ class Visualizer:
             time.sleep(1 / 60)
         print(generator.width)
         print(generator.height)
-        # hex_map = generator.convert_hex_maze(maze)
-        # output_maze(hex_map, generator.start_pos, generator.end_pos, path)
+        hex_map = generator.convert_hex_maze(maze)
+        output_maze(hex_map, generator.start_pos, generator.end_pos, path)
 
     def close_screen(self):
         cs.nocbreak()
@@ -171,16 +171,14 @@ def main() -> None:
         sys.exit(1)
     try:
         seed = -1
-        perfect = False
         config = parse_config(av[1])
         height = int(config["HEIGHT"])
         width = int(config["WIDTH"])
         start_pos = tuple(map(int, config["ENTRY"].split(",")))
         end_pos = tuple(map(int, config["EXIT"].split(",")))
+        perfect = config["PERFECT"] == "True"
         if config["SEED"] is not None:
             seed = int(config["SEED"])
-        if config["PERFECT"] is not None:
-            perfect = bool(config["PERFECT"])
         generator = MazeGenerator(
             height=height,
             width=width,
@@ -192,6 +190,7 @@ def main() -> None:
         visu = Visualizer()
         visu.render(generator)
         visu.close_screen()
+        print(config["PERFECT"])
     except ValidationError as e:
         for error in e.errors():
             print(error["msg"])
