@@ -41,7 +41,8 @@ class AStar:
     def is_destination(self, row: int, col: int):
         return row == self.end[0] and col == self.end[1]
 
-    def trace_path(self, screen, cell_tab: list[list[Cells]], maze: list[list[int]]):
+    def trace_path(self, screen, cell_tab: list[list[Cells]],
+                   maze: list[list[int]]):
         from mazegen import MazeGenerator
 
         path = []
@@ -49,7 +50,8 @@ class AStar:
         col = self.end[1]
         moove_matrix = {(-2, 0): "N", (2, 0): "S", (0, -2): "W", (0, 2): "E"}
         while not (
-            cell_tab[row][col].parent_i == row and cell_tab[row][col].parent_j == col
+            cell_tab[row][col].parent_i == row and cell_tab[row][col].parent_j
+            == col
         ):
             path.append((row, col))
             temp_row = cell_tab[row][col].parent_i
