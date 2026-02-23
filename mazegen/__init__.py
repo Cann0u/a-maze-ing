@@ -13,7 +13,8 @@ class MazeGenerator(BaseModel):
     width: int = Field(default=2)
     start_pos: tuple[int, int] = Field(default=(0, 0))
     end_pos: tuple[int, int] = Field(default=(1, 1))
-    perfect: bool = True
+    perfect: bool = False
+    seed: int = None
 
     @property
     def solver(self):
@@ -89,6 +90,8 @@ class MazeGenerator(BaseModel):
         ]
         height = self.height * 2 + 1
         width = self.width * 2 + 1
+        if self.seed >= 0:
+            random.seed(self.seed)
         ft_height = len(fourty_two)
         ft_width = len(fourty_two[0])
         start = [
@@ -205,6 +208,22 @@ class MazeGenerator(BaseModel):
                 self.print_maze(screen, maze)
                 time.sleep(1 / 60)
                 screen.refresh()
+        if not self.perfect:
+            for i, row in enumerate(maze):
+                for j, col in enumerate(row):
+                    if col == 1:
+                        if (
+                            height - 2 > i > 1
+                            and 1 < j < width - 2
+                            and random.randint(0, 50) <= 2
+                        ):
+                            y, x = random.choice(direc)
+                            if maze[i + y * 2][j + x * 2] != 5:
+                                maze[i + y][j + x] = 1
+                        if screen is not None:
+                            self.print_maze(screen, maze)
+                            time.sleep(1 / 60)
+                            screen.refresh()
         y, x = self.start
         maze[y][x] = 6
         maze[self.end[0]][self.end[1]] = 7

@@ -3,10 +3,16 @@ from pydantic import ValidationError
 import sys
 import curses as cs
 import time
+import os
+import dotenv
 
 
-def output_maze(lines: list[str], start: tuple[int, int], end: tuple[int, int],
-                path_find: str) -> None:
+def output_maze(
+    lines: list[str],
+    start: tuple[int, int],
+    end: tuple[int, int],
+    path_find: str,
+) -> None:
     with open("output_maze.txt", "w") as file:
         for line in lines:
             file.write(line + "\n")
@@ -17,15 +23,26 @@ def output_maze(lines: list[str], start: tuple[int, int], end: tuple[int, int],
 
 
 def parse_config(filename: str) -> dict[str, str]:
-    read_file = {}
-    with open(filename, "r") as file:
-        for line in file:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            key, value = line.split("=", 1)
-            read_file[key] = value
-        return read_file
+    if not dotenv.load_dotenv(filename):
+        return
+    key = [
+        "HEIGHT",
+        "WIDTH",
+        "ENTRY",
+        "EXIT",
+        "PERFECT",
+        "SEED",
+        "OUTPUT_FILE",
+    ]
+    read_file = {j: os.getenv(j) for j in key}
+    # with open(filename, "r") as file:
+    #     for line in file:
+    #         line = line.strip()
+    #         if not line or line.startswith("#"):
+    #             continue
+    #         key, value = line.split("=", 1)
+    #         read_file[key] = value
+    return read_file
 
 
 class Button:
@@ -67,12 +84,14 @@ class Visualizer:
         cs.curs_set(0)
         cs.noecho()
         self.__screen.keypad(True)
+
         try:
             maze = generator.maze_gen(self.__screen)
             path = generator.solver.solve(maze, self.__screen)
             generator.clear_path(maze)
         except ValueError as e:
             print(e)
+            return
         buttons = [
             Button((len(maze), 0), "exit"),
             Button((len(maze), 20), "clear"),
@@ -132,12 +151,16 @@ class Visualizer:
             generator.print_maze(self.__screen, maze, hide)
             self.__screen.refresh()
             time.sleep(1 / 60)
+        print(generator.width)
+        print(generator.height)
+        # hex_map = generator.convert_hex_maze(maze)
+        # output_maze(hex_map, generator.start_pos, generator.end_pos, path)
+
+    def close_screen(self):
         cs.nocbreak()
         self.__screen.keypad(False)
         cs.echo()
         cs.endwin()
-        hex_map = generator.convert_hex_maze(maze)
-        output_maze(hex_map, generator.start_pos, generator.end_pos, path)
 
 
 def main() -> None:
@@ -147,16 +170,28 @@ def main() -> None:
         print("error arg")
         sys.exit(1)
     try:
+        seed = -1
+        perfect = False
         config = parse_config(av[1])
         height = int(config["HEIGHT"])
         width = int(config["WIDTH"])
         start_pos = tuple(map(int, config["ENTRY"].split(",")))
         end_pos = tuple(map(int, config["EXIT"].split(",")))
+        if config["SEED"] is not None:
+            seed = int(config["SEED"])
+        if config["PERFECT"] is not None:
+            perfect = bool(config["PERFECT"])
         generator = MazeGenerator(
-            height=height, width=width, start_pos=start_pos, end_pos=end_pos
+            height=height,
+            width=width,
+            start_pos=start_pos,
+            end_pos=end_pos,
+            seed=seed,
+            perfect=perfect,
         )
         visu = Visualizer()
         visu.render(generator)
+        visu.close_screen()
     except ValidationError as e:
         for error in e.errors():
             print(error["msg"])
