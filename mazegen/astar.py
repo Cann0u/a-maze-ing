@@ -83,22 +83,9 @@ class AStar:
     def solve(self, maze: list[list[int]], screen=None) -> list[int]:
         from mazegen import MazeGenerator
 
-        print(self.start)
         height = len(maze)
         width = len(maze[0])
         direc = [(-2, 0), (2, 0), (0, -2), (0, 2)]
-        maze[self.start[0]][self.start[1]] = 6
-        x, y = self.end
-        if x >= height or y >= width:
-            raise ValueError("Invalid end coordinate")
-        if (
-            maze[self.end[0]][self.end[1]] != 1
-            and maze[self.end[0]][self.end[1]] != 7
-        ):
-            raise ValueError("Invalid end coordinate")
-        if self.start == self.end:
-            return maze
-        maze[x][y] = 7
         closed_cell = [[False for j in range(width)] for i in range(height)]
         cell_tab = [
             [self.Cells() for j in range(width)] for i in range(height)

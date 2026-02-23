@@ -165,12 +165,16 @@ class MazeGenerator(BaseModel):
         width = self.width * 2 + 1
         maze = [[0 for j in range(width)] for i in range(height)]
         direc = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        x, y = self.end
+        if x >= height or y >= width:
+            raise ValueError("Invalid end coordinate")
+        x, y = self.start
+        if x >= height or y >= width:
+            raise ValueError("Invalid start coordinate")
         end = False
         prev = []
         self.set_fourty_two(maze)
         curr = self.start
-        if maze[curr[0]][curr[1]] != 0:
-            raise ValueError("invalid start")
         x, y = curr
         maze[x][y] = 1
         while not end:
@@ -201,6 +205,9 @@ class MazeGenerator(BaseModel):
                 self.print_maze(screen, maze)
                 time.sleep(1 / 60)
                 screen.refresh()
+        y, x = self.start
+        maze[y][x] = 6
+        maze[self.end[0]][self.end[1]] = 7
         return maze
 
     def convert_hex_maze(self, maze: list[list[str]]) -> list[list[str]]:

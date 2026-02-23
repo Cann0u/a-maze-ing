@@ -69,7 +69,7 @@ class Visualizer:
         self.__screen.keypad(True)
         try:
             maze = generator.maze_gen(self.__screen)
-            generator.solver.solve(maze, self.__screen)
+            path = generator.solver.solve(maze, self.__screen)
             generator.clear_path(maze)
         except ValueError as e:
             print(e)
@@ -124,6 +124,8 @@ class Visualizer:
                             print(e)
                     case 6:
                         maze = generator.maze_gen(self.__screen)
+                        path = generator.solver.solve(maze, self.__screen)
+                        generator.clear_path(maze)
             if old_select != select:
                 buttons[old_select].toggle_focus()
                 buttons[select].toggle_focus()
