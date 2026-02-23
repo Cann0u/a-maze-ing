@@ -1,9 +1,10 @@
-import random
-import time
 from pydantic import BaseModel, Field, model_validator
+from .dfs_path import DFS
+from constant import CELL
 from .astar import AStar
 import curses as cs
-from .dfs_path import DFS
+import random
+import time
 
 __all__ = [AStar]
 
@@ -63,15 +64,15 @@ class MazeGenerator(BaseModel):
     def clear(maze: list[list[int]]):
         for i, row in enumerate(maze):
             for j, col in enumerate(row):
-                if col == 3 or col == 4:
-                    maze[i][j] = 1
+                if col == CELL.FIND.value or col == CELL.PATH.value:
+                    maze[i][j] = CELL.EMPTY.value
 
     @staticmethod
     def clear_path(maze: list[list[int]]):
         for i, row in enumerate(maze):
             for j, col in enumerate(row):
-                if col == 4:
-                    maze[i][j] = 1
+                if col == CELL.PATH.value:
+                    maze[i][j] = CELL.EMPTY.value
 
     def set_fourty_two(self, maze: list[list[str]]):
         fourty_two = [
@@ -104,7 +105,7 @@ class MazeGenerator(BaseModel):
                 maze[start[0] + i][start[1] + j] = l
 
     @staticmethod
-    def print_maze(screen, maze, hide=False, path=None):
+    def print_maze(screen, maze, hide=False):
         MazeGenerator.setup_colors()
         for y, row in enumerate(maze):
             for x, char in enumerate(row):
@@ -115,17 +116,15 @@ class MazeGenerator(BaseModel):
                         pass
                 elif char == 1:
                     try:
-                        screen.addstr(
-                            y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
-                        )
+                        screen.addstr(y, x * 2, "██", cs.color_pair(2) |
+                                      cs.A_BOLD)
                     except Exception:
                         pass
                 elif char == 3:
                     try:
                         if hide:
-                            screen.addstr(
-                                y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
-                            )
+                            screen.addstr(y, x * 2, "██", cs.color_pair(2) |
+                                          cs.A_BOLD)
                         else:
                             screen.addstr(y, x * 2, "██", cs.color_pair(3))
                     except Exception:

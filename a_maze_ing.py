@@ -32,8 +32,9 @@ def update_ouput(generator: MazeGenerator, maze):
     hex_map = generator.convert_hex_maze(maze)
     short_path = ShortPath.shortest_path(generator, maze)
     if short_path:
-        output_map = output_maze(hex_map, generator.start_pos,
-                                 generator.end_pos, short_path)
+        output_map = output_maze(
+            hex_map, generator.start_pos, generator.end_pos, short_path
+        )
     return output_map
 
 
@@ -52,9 +53,8 @@ class Button:
         if self.focused:
             screen.addstr(self.x, self.y, self.text, self.focus | cs.A_BOLD)
         else:
-            screen.addstr(
-                self.x, self.y, self.text, self.color_pair | cs.A_BOLD
-            )
+            screen.addstr(self.x, self.y, self.text, self.color_pair |
+                          cs.A_BOLD)
 
     def toggle_focus(self):
         self.focused = not self.focused
@@ -90,13 +90,14 @@ class Visualizer:
             Button((len(maze) + 2, 20), "dfs"),
             Button((len(maze) + 3, 0), "regen"),
         ]
-        generator.clear(maze)
         hide = False
         select = 0
         buttons[0].toggle_focus()
         while True:
+            generator.print_maze(self.__screen, maze, hide)
             for but in buttons:
                 but.draw(self.__screen)
+            self.__screen.refresh()
             char = self.__screen.getch()
             old_select = select
             if char == cs.KEY_UP:
@@ -117,16 +118,17 @@ class Visualizer:
                         generator.clear_path(maze)
                     case 3:
                         hide = not hide
+                        generator.clear_path(maze)
                     case 4:
                         try:
-                            generator.clear_path(maze)
+                            generator.clear(maze)
                             generator.solver_astar.solve(maze, self.__screen)
                             update_ouput(generator, maze)
                         except ValueError as e:
                             print(e)
                     case 5:
                         try:
-                            generator.clear_path(maze)
+                            generator.clear(maze)
                             generator.solver_dfs.solve(maze, self.__screen)
                             update_ouput(generator, maze)
                         except ValueError as e:
@@ -156,7 +158,7 @@ class ShortPath:
             astar_path = generator.solver_astar.solve(maze)
             shortest = astar_path
         except ValueError:
-            print('path is invalid')
+            print("path is invalid")
         return shortest
 
 
