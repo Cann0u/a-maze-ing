@@ -102,31 +102,44 @@ class Visualizer:
         path = []
         cs.curs_set(0)
         cs.noecho()
-        self.__screen.keypad(True)
-
+        hide = False
+        generator.setup_colors()
         try:
             maze = generator.maze_gen(self.__screen)
             path = generator.solver.solve(maze, self.__screen)
             generator.clear_path(maze)
+            self.__screen.refresh()
         except ValueError as e:
             print(e)
             return
         buttons = [
-            Button((len(maze), 0), "exit"),
-            Button((len(maze), 20), "clear"),
-            Button((len(maze) + 1, 0), "clear_path"),
-            Button((len(maze) + 1, 20), "hide"),
-            Button((len(maze) + 2, 0), "astar"),
-            Button((len(maze) + 2, 20), "dfs"),
-            Button((len(maze) + 3, 0), "regen"),
+            Button((1, 1), "exit"),
+            Button((1, 20), "clear"),
+            Button((2, 1), "hide"),
+            Button((2, 20), "color"),
+            Button((3, 1), "astar"),
+            Button((3, 20), "dfs"),
+            Button((4, 1), "regen"),
         ]
-        hide = False
+        win = cs.newwin(len(buttons) + 1, 36, len(maze), 0)
+        win.border()
+        win.keypad(True)
+        win.move(0, 12)
+        try:
+            win.addstr("A-MAZE-ING")
+        except Exception:
+            pass
         select = 0
         buttons[0].toggle_focus()
         while True:
+            generator.print_maze(self.__screen, maze, hide)
             for but in buttons:
-                but.draw(self.__screen)
-            char = self.__screen.getch()
+                try:
+                    but.draw(win)
+                except Exception:
+                    pass
+            self.__screen.refresh()
+            char = win.getch()
             old_select = select
             if char == cs.KEY_UP:
                 select = (select - 2) % len(buttons)
@@ -143,9 +156,9 @@ class Visualizer:
                     case 1:
                         generator.clear(maze)
                     case 2:
-                        generator.clear_path(maze)
-                    case 3:
                         hide = not hide
+                    case 3:
+                        generator.change_color(maze)
                     case 4:
                         try:
                             generator.clear(maze=maze)
@@ -169,13 +182,25 @@ class Visualizer:
             if old_select != select:
                 buttons[old_select].toggle_focus()
                 buttons[select].toggle_focus()
-            generator.print_maze(self.__screen, maze, hide)
+            win.border()
+            win.move(0, 12)
+            try:
+                win.addstr("A-MAZE-ING")
+            except Exception:
+                pass
+            win.refresh()
             self.__screen.refresh()
             time.sleep(1 / 60)
         print(generator.width)
         print(generator.height)
+        win.keypad(False)
+        win.clear()
+        win.refresh()
         hex_map = generator.convert_hex_maze(maze)
-        output_maze(hex_map, generator.start_pos, generator.end_pos, path)
+        try:
+            output_maze(hex_map, generator.start_pos, generator.end_pos, path)
+        except Exception:
+            pass
 
     def close_screen(self):
         cs.nocbreak()
@@ -196,7 +221,6 @@ def main() -> None:
         visu = Visualizer()
         visu.render(generator)
         visu.close_screen()
-        print(config["PERFECT"])
     except (ValidationError, ValueError) as e:
         if isinstance(e, ValueError):
             print(e)

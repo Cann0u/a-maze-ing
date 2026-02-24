@@ -107,8 +107,43 @@ class MazeGenerator(BaseModel):
                 maze[start[0] + i][start[1] + j] = l
 
     @staticmethod
+    def change_color(maze: list[list[int]]):
+        cs.start_color()
+        cs.use_default_colors()
+        func = {
+            "wall": lambda e: cs.init_pair(1, e, -1),
+            "empty": lambda e: cs.init_pair(2, e, -1),
+            "path": lambda e: cs.init_pair(3, e, -1),
+            "ft": lambda e: cs.init_pair(5, e, -1),
+        }
+        colors = {
+            "grey": 8,
+            "black": cs.COLOR_BLACK,
+            "white": cs.COLOR_WHITE,
+            "green": 2,
+            "yellow": 11,
+            "blue": 4,
+            "cyan": 9
+        }
+        win = cs.newwin(3, 45, len(maze) + 2, 35)
+        win.border()
+        cs.echo()
+        win.move(1, 1)
+        encode = win.getstr()
+        string = encode.decode("utf-8")
+        try:
+            key, color = string.split(" ")[:2]
+            win.addstr(f"{key}--{color}")
+            fonc = func[key]
+            fonc(colors[color])
+        except Exception:
+            pass
+        win.clear()
+        cs.noecho()
+        win.refresh()
+
+    @staticmethod
     def print_maze(screen, maze, hide=False):
-        MazeGenerator.setup_colors()
         for y, row in enumerate(maze):
             for x, char in enumerate(row):
                 if char == 0:
@@ -225,10 +260,8 @@ class MazeGenerator(BaseModel):
                             y, x = random.choice(direc)
                             if (
                                 maze[i + y * 2][j + x * 2] == 1
-                                # and maze[i + y * 2 + x][j + x * 2 + y] == 1
-                                # and maze[i + y * 2 - x][j + x * 2 - y] == 1
                             ):
-                                maze[i + x][j + y] = 1
+                                maze[i + y][j + x] = 1
             for i, row in enumerate(maze):
                 for j, col in enumerate(row):
                     if (
