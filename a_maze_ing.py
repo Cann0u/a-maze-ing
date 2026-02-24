@@ -49,11 +49,17 @@ def parse_config(filename: str) -> dict[str, str]:
         end_pos = tuple(map(int, read_file["EXIT"].split(",")))
     except ValueError:
         raise ValueError("[ERROR] Invalid Value in tuple EXIT or ENTRY")
-    if read_file["PERFECT"] is None:
-        raise ValueError("[ERROR] PERFECT field must be 'True' or 'False'")
     if read_file["SEED"] is not None:
         seed = int(read_file["SEED"])
-    perfect = read_file["PERFECT"] == "True"
+    try:
+        if read_file["PERFECT"] is None or read_file["PERFECT"] not in [
+            "True",
+            "False",
+        ]:
+            raise ValueError("[ERROR] PERFECT field must be 'True' or 'False'")
+        perfect = read_file["PERFECT"] == "True"
+    except Exception:
+        raise ValueError("[ERROR] PERFECT field must be 'True' or 'False'")
     dico = {
         "height": height,
         "width": width,
@@ -118,8 +124,8 @@ class Visualizer:
         try:
             maze = generator.maze_gen(self.__screen)
             generator.solver_astar.solve(maze, self.__screen)
-            generator.clear_path(maze)
             update_ouput(generator, maze)
+            generator.clear_path(maze)
             self.__screen.refresh()
         except ValueError as e:
             print(e)
@@ -175,23 +181,22 @@ class Visualizer:
                         try:
                             generator.clear(maze=maze)
                             generator.solver_astar.solve(maze, self.__screen)
-                            generator.clear_path(maze)
                             update_ouput(generator, maze)
+                            generator.clear_path(maze)
                         except ValueError as e:
                             print(e)
                     case 5:
                         try:
                             generator.clear(maze=maze)
                             generator.solver_dfs.solve(maze, self.__screen)
-                            generator.clear_path(maze)
                             update_ouput(generator, maze)
+                            generator.clear_path(maze)
                         except ValueError as e:
                             print(e)
                     case 6:
                         maze = generator.maze_gen(self.__screen)
-                        path = generator.solver_astar.solve(
-                            maze, self.__screen
-                        )
+                        generator.solver_astar.solve(maze, self.__screen)
+                        update_ouput(generator, maze)
                         generator.clear_path(maze)
             if old_select != select:
                 buttons[old_select].toggle_focus()
@@ -212,7 +217,7 @@ class Visualizer:
         win.refresh()
         hex_map = generator.convert_hex_maze(maze)
         try:
-            output_maze(hex_map, generator.start_pos, generator.end_pos, path)
+            output_maze(hex_map, generator.start_pos, generator.end_pos)
         except Exception:
             pass
         update_ouput(generator, maze)
@@ -249,6 +254,7 @@ def main() -> None:
         visu = Visualizer()
         visu.render(generator)
         visu.close_screen()
+        print(config)
     except (ValidationError, ValueError) as e:
         if isinstance(e, ValueError):
             print(e)

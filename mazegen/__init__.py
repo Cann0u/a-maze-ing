@@ -14,7 +14,7 @@ class MazeGenerator(BaseModel):
     width: int = Field(ge=2, default=2)
     start_pos: tuple[int, int] = Field(default=(0, 0))
     end_pos: tuple[int, int] = Field(default=(1, 1))
-    perfect: bool = False
+    perfect: bool
     seed: int = None
 
     @property
