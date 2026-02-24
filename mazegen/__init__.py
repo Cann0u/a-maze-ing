@@ -1,9 +1,10 @@
-import random
-import time
 from pydantic import BaseModel, Field, model_validator
+from .dfs_path import DFS
+from constant import CELL
 from .astar import AStar
 import curses as cs
-from .dfs_path import DFS
+import random
+import time
 
 __all__ = [AStar]
 
@@ -17,11 +18,11 @@ class MazeGenerator(BaseModel):
     seed: int = None
 
     @property
-    def solver(self):
+    def solver_astar(self):
         return AStar(self.start_pos, self.end_pos)
 
     @property
-    def solver_bis(self):
+    def solver_dfs(self):
         return DFS(self.start_pos, self.end_pos)
 
     @property
@@ -64,15 +65,15 @@ class MazeGenerator(BaseModel):
     def clear(maze: list[list[int]]):
         for i, row in enumerate(maze):
             for j, col in enumerate(row):
-                if col == 3 or col == 4:
-                    maze[i][j] = 1
+                if col == CELL.FIND.value or col == CELL.PATH.value:
+                    maze[i][j] = CELL.EMPTY.value
 
     @staticmethod
     def clear_path(maze: list[list[int]]):
         for i, row in enumerate(maze):
             for j, col in enumerate(row):
-                if col == 4:
-                    maze[i][j] = 1
+                if col == CELL.PATH.value:
+                    maze[i][j] = CELL.EMPTY.value
 
     def set_fourty_two(self, maze: list[list[str]]):
         fourty_two = [
@@ -153,17 +154,15 @@ class MazeGenerator(BaseModel):
                         pass
                 elif char == 1:
                     try:
-                        screen.addstr(
-                            y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
-                        )
+                        screen.addstr(y, x * 2, "██", cs.color_pair(2) |
+                                      cs.A_BOLD)
                     except Exception:
                         pass
                 elif char == 3:
                     try:
                         if hide:
-                            screen.addstr(
-                                y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
-                            )
+                            screen.addstr(y, x * 2, "██", cs.color_pair(2) |
+                                          cs.A_BOLD)
                         else:
                             screen.addstr(y, x * 2, "██", cs.color_pair(3))
                     except Exception:
@@ -193,10 +192,10 @@ class MazeGenerator(BaseModel):
                         screen.addstr(y, x * 2, "██", cs.color_pair(3))
                     except Exception:
                         pass
-            try:
-                screen.addch("\n")
-            except Exception:
-                pass
+                try:
+                    screen.addch("\n")
+                except Exception:
+                    pass
 
     def maze_gen(self, screen=None) -> list[list[int]]:
         height = self.height * 2 + 1

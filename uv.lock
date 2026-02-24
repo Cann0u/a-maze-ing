@@ -125,6 +125,21 @@ wheels = [
 ]
 
 [[package]]
+name = "mazegen"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "mypy" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pydantic", specifier = ">=2.12.5" },
+]
+
+[[package]]
 name = "mypy"
 version = "1.19.1"
 source = { registry = "https://pypi.org/simple" }

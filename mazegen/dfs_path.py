@@ -1,3 +1,4 @@
+from constant import CELL
 import time
 
 
@@ -11,12 +12,9 @@ class DFS:
     def find_path_dfs(self, maze_matrix, screen=None) -> bool:
         from mazegen import MazeGenerator
 
-        stack = [(self.start, [])]
+        stack: list[tuple[tuple[int, int], list[str]]] = [(self.start, [])]
         is_visit = {self.start}
-        moove_matrix = {(-1, 0): "N",
-                        (1, 0): "S",
-                        (0, -1): "W",
-                        (0, 1): "E"}
+        moove_matrix = {(-1, 0): "N", (1, 0): "S", (0, -1): "W", (0, 1): "E"}
         while stack:
             current_node, current_path = stack.pop()
             if current_node == self.end:
@@ -36,26 +34,34 @@ class DFS:
                 if (
                     0 <= pos_x < len(maze_matrix)
                     and 0 <= pos_y < len(maze_matrix[0])
-                    and maze_matrix[pos_x][pos_y] != 0
+                    and maze_matrix[pos_x][pos_y] != CELL.WALL.value
                 ):
                     if (pos_x, pos_y) not in is_visit:
                         is_visit.add((pos_x, pos_y))
+                        if (
+                            maze_matrix[pos_x][pos_y] == CELL.EMPTY.value
+                            or maze_matrix[pos_x][pos_y] == CELL.FIND.value
+                        ):
+                            maze_matrix[pos_x][pos_y] = CELL.PATH.value
                         coord_path = current_path + [direction]
                         stack.append(((pos_x, pos_y), coord_path))
-
+                        MazeGenerator.print_maze(screen, maze_matrix)
+                        time.sleep(1 / 60)
+                        screen.refresh()
         return []
 
     def solve(self, maze, screen=None):
         from mazegen import MazeGenerator
+
         height = len(maze)
         width = len(maze[0])
-        maze[self.start[0]][self.start[1]] = 6
+        maze[self.start[0]][self.start[1]] = CELL.START.value
         x, y = self.end
         if x >= height or y >= width:
             raise ValueError("Invalid end coordinate")
         if (
-            maze[self.end[0]][self.end[1]] != 1
-            and maze[self.end[0]][self.end[1]] != 7
+            maze[self.end[0]][self.end[1]] != CELL.EMPTY.value
+            and maze[self.end[0]][self.end[1]] != CELL.EXIT.value
         ):
             raise ValueError("Invalid end coordinate")
         if self.start == self.end:
@@ -63,19 +69,14 @@ class DFS:
         maze[x][y] = 7
         path_dfs = self.find_path_dfs(maze, screen)
         x, y = self.start
-        moove_matrix = {"N": (-1, 0),
-                        "S": (1, 0),
-                        "W": (0, -1),
-                        "E": (0, 1)}
+        moove_matrix = {"N": (-1, 0), "S": (1, 0), "W": (0, -1), "E": (0, 1)}
         for coord in path_dfs:
-            if maze[x][y] == 4:
-                maze[x][y] = 3
+            if maze[x][y] == CELL.PATH.value:
+                maze[x][y] = CELL.FIND.value
             d_x, d_y = moove_matrix[coord]
             x += d_x
             y += d_y
-            if maze[x][y] == 4:
-                maze[x][y] = 3
             MazeGenerator.print_maze(screen, maze)
-            time.sleep(1/60)
+            time.sleep(1 / 60)
             screen.refresh()
         return path_dfs

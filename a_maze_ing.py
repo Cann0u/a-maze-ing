@@ -1,10 +1,10 @@
 from mazegen import MazeGenerator
 from pydantic import ValidationError
-import sys
 import curses as cs
 import time
 import os
 import dotenv
+import sys
 
 
 def output_maze(
@@ -54,14 +54,26 @@ def parse_config(filename: str) -> dict[str, str]:
     if read_file["SEED"] is not None:
         seed = int(read_file["SEED"])
     perfect = read_file["PERFECT"] == "True"
-    dico = {"height": height,
-            "width": width,
-            "start_pos": start_pos,
-            "end_pos": end_pos,
-            "perfect": perfect}
+    dico = {
+        "height": height,
+        "width": width,
+        "start_pos": start_pos,
+        "end_pos": end_pos,
+        "perfect": perfect,
+    }
     if seed != -1:
         dico.update({"seed": seed})
     return dico
+
+
+def update_ouput(generator: MazeGenerator, maze):
+    hex_map = generator.convert_hex_maze(maze)
+    short_path = ShortPath.shortest_path(generator, maze)
+    if short_path:
+        output_map = output_maze(
+            hex_map, generator.start_pos, generator.end_pos, short_path
+        )
+    return output_map
 
 
 class Button:
@@ -99,15 +111,15 @@ class Visualizer:
         return self.__screen
 
     def render(self, generator: MazeGenerator):
-        path = []
         cs.curs_set(0)
         cs.noecho()
         hide = False
         generator.setup_colors()
         try:
             maze = generator.maze_gen(self.__screen)
-            path = generator.solver.solve(maze, self.__screen)
+            generator.solver_astar.solve(maze, self.__screen)
             generator.clear_path(maze)
+            update_ouput(generator, maze)
             self.__screen.refresh()
         except ValueError as e:
             print(e)
@@ -162,22 +174,24 @@ class Visualizer:
                     case 4:
                         try:
                             generator.clear(maze=maze)
-                            path = generator.solver.solve(maze, self.__screen)
+                            generator.solver_astar.solve(maze, self.__screen)
                             generator.clear_path(maze)
+                            update_ouput(generator, maze)
                         except ValueError as e:
                             print(e)
                     case 5:
                         try:
                             generator.clear(maze=maze)
-                            path = generator.solver_bis.solve(
-                                maze, self.__screen
-                            )
+                            generator.solver_dfs.solve(maze, self.__screen)
                             generator.clear_path(maze)
+                            update_ouput(generator, maze)
                         except ValueError as e:
                             print(e)
                     case 6:
                         maze = generator.maze_gen(self.__screen)
-                        path = generator.solver.solve(maze, self.__screen)
+                        path = generator.solver_astar.solve(
+                            maze, self.__screen
+                        )
                         generator.clear_path(maze)
             if old_select != select:
                 buttons[old_select].toggle_focus()
@@ -201,12 +215,26 @@ class Visualizer:
             output_maze(hex_map, generator.start_pos, generator.end_pos, path)
         except Exception:
             pass
+        update_ouput(generator, maze)
 
     def close_screen(self):
         cs.nocbreak()
         self.__screen.keypad(False)
         cs.echo()
         cs.endwin()
+
+
+class ShortPath:
+
+    @staticmethod
+    def shortest_path(generator: MazeGenerator, maze):
+        try:
+            generator.clear_path(maze)
+            astar_path = generator.solver_astar.solve(maze)
+            shortest = astar_path
+        except ValueError:
+            print("path is invalid")
+        return shortest
 
 
 def main() -> None:
