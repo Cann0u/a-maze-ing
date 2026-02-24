@@ -35,14 +35,33 @@ def parse_config(filename: str) -> dict[str, str]:
         "OUTPUT_FILE",
     ]
     read_file = {j: os.getenv(j) for j in key}
-    # with open(filename, "r") as file:
-    #     for line in file:
-    #         line = line.strip()
-    #         if not line or line.startswith("#"):
-    #             continue
-    #         key, value = line.split("=", 1)
-    #         read_file[key] = value
-    return read_file
+    seed = -1
+    try:
+        height = int(read_file["HEIGHT"])
+    except ValueError:
+        raise ValueError("[ERROR] HEIGHT must be integer value")
+    try:
+        width = int(read_file["WIDTH"])
+    except ValueError:
+        raise ValueError("[ERROR] WIDTH must be integer value")
+    try:
+        start_pos = tuple(map(int, read_file["ENTRY"].split(",")))
+        end_pos = tuple(map(int, read_file["EXIT"].split(",")))
+    except ValueError:
+        raise ValueError("[ERROR] Invalid Value in tuple EXIT or ENTRY")
+    if read_file["PERFECT"] is None:
+        raise ValueError("[ERROR] PERFECT field must be 'True' or 'False'")
+    if read_file["SEED"] is not None:
+        seed = int(read_file["SEED"])
+    perfect = read_file["PERFECT"] == "True"
+    dico = {"height": height,
+            "width": width,
+            "start_pos": start_pos,
+            "end_pos": end_pos,
+            "perfect": perfect}
+    if seed != -1:
+        dico.update({"seed": seed})
+    return dico
 
 
 class Button:
@@ -129,12 +148,14 @@ class Visualizer:
                         hide = not hide
                     case 4:
                         try:
+                            generator.clear(maze=maze)
                             path = generator.solver.solve(maze, self.__screen)
                             generator.clear_path(maze)
                         except ValueError as e:
                             print(e)
                     case 5:
                         try:
+                            generator.clear(maze=maze)
                             path = generator.solver_bis.solve(
                                 maze, self.__screen
                             )
@@ -170,30 +191,18 @@ def main() -> None:
         print("error arg")
         sys.exit(1)
     try:
-        seed = -1
         config = parse_config(av[1])
-        height = int(config["HEIGHT"])
-        width = int(config["WIDTH"])
-        start_pos = tuple(map(int, config["ENTRY"].split(",")))
-        end_pos = tuple(map(int, config["EXIT"].split(",")))
-        perfect = config["PERFECT"] == "True"
-        if config["SEED"] is not None:
-            seed = int(config["SEED"])
-        generator = MazeGenerator(
-            height=height,
-            width=width,
-            start_pos=start_pos,
-            end_pos=end_pos,
-            seed=seed,
-            perfect=perfect,
-        )
+        generator = MazeGenerator(**config)
         visu = Visualizer()
         visu.render(generator)
         visu.close_screen()
         print(config["PERFECT"])
-    except ValidationError as e:
-        for error in e.errors():
-            print(error["msg"])
+    except (ValidationError, ValueError) as e:
+        if isinstance(e, ValueError):
+            print(e)
+        else:
+            for error in e.errors():
+                print(error["msg"])
 
 
 main()

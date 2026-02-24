@@ -90,7 +90,7 @@ class MazeGenerator(BaseModel):
         ]
         height = self.height * 2 + 1
         width = self.width * 2 + 1
-        if self.seed >= 0:
+        if self.seed is not None:
             random.seed(self.seed)
         ft_height = len(fourty_two)
         ft_width = len(fourty_two[0])
@@ -220,7 +220,7 @@ class MazeGenerator(BaseModel):
                         if (
                             height - 2 > i > 1
                             and 1 < j < width - 2
-                            and random.randint(0, 10) <= 2
+                            and random.randint(0, 100) <= 15
                         ):
                             y, x = random.choice(direc)
                             if (
@@ -228,7 +228,7 @@ class MazeGenerator(BaseModel):
                                 # and maze[i + y * 2 + x][j + x * 2 + y] == 1
                                 # and maze[i + y * 2 - x][j + x * 2 - y] == 1
                             ):
-                                maze[i][j] = 1
+                                maze[i + x][j + y] = 1
             for i, row in enumerate(maze):
                 for j, col in enumerate(row):
                     if (

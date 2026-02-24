@@ -21,6 +21,10 @@ class DFS:
             current_node, current_path = stack.pop()
             if current_node == self.end:
                 return current_path
+            if screen is not None:
+                MazeGenerator.print_maze(screen, maze_matrix)
+                time.sleep(1 / 60)
+                screen.refresh()
             for (m_x, m_y), direction in moove_matrix.items():
                 pos_x = current_node[0] + m_x
                 pos_y = current_node[1] + m_y
@@ -29,10 +33,6 @@ class DFS:
                     or maze_matrix[pos_x][pos_y] == 3
                 ):
                     maze_matrix[pos_x][pos_y] = 4
-                if screen is not None:
-                    MazeGenerator.print_maze(screen, maze_matrix)
-                    time.sleep(1 / 60)
-                    screen.refresh()
                 if (
                     0 <= pos_x < len(maze_matrix)
                     and 0 <= pos_y < len(maze_matrix[0])
