@@ -125,7 +125,7 @@ class MazeGenerator(BaseModel):
             "blue": 4,
             "cyan": 9
         }
-        win = cs.newwin(3, 45, len(maze) + 2, 35)
+        win = cs.newwin(3, 45, len(maze) + 1, 35)
         win.border()
         cs.echo()
         win.move(1, 1)
