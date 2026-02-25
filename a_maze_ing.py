@@ -292,7 +292,6 @@ def main() -> None:
         visu = Visualizer()
         visu.render(generator)
         visu.close_screen()
-        print(config)
     except (ValidationError, ValueError) as e:
         if isinstance(e, ValueError):
             print(e)
