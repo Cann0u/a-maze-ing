@@ -18,14 +18,18 @@ def output_maze(
 
     Args:
         lines: A list of strings representing the maze grid lines.
-        start: A tuple containing the (row, column) coordinates of the start position.
-        end: A tuple containing the (row, column) coordinates of the end position.
-        path_find: A string or sequence representing the path solution through the maze.
+        start: A tuple containing the (row, column)
+        coordinates of the start position.
+        end: A tuple containing the (row, column)
+        coordinates of the end position.
+        path_find: A string or sequence representing
+        the path solution through the maze.
 
     Returns:
         None
 
-    Writes the maze grid, start position, end position, and solution path to 'output_maze.txt'.
+    Writes the maze grid, start position, end position,
+    and solution path to 'output_maze.txt'.
     """
     with open("output_maze.txt", "w") as file:
         for line in lines:
