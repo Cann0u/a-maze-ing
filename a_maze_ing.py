@@ -13,6 +13,20 @@ def output_maze(
     end: tuple[int, int],
     path_find: str,
 ) -> None:
+    """
+    Write maze data to an output file.
+
+    Args:
+        lines: A list of strings representing the maze grid lines.
+        start: A tuple containing the (row, column) coordinates of the start position.
+        end: A tuple containing the (row, column) coordinates of the end position.
+        path_find: A string or sequence representing the path solution through the maze.
+
+    Returns:
+        None
+
+    Writes the maze grid, start position, end position, and solution path to 'output_maze.txt'.
+    """
     with open("output_maze.txt", "w") as file:
         for line in lines:
             file.write(line + "\n")
@@ -23,6 +37,26 @@ def output_maze(
 
 
 def parse_config(filename: str) -> dict[str, str]:
+    """
+    Parse a configuration file and extract maze parameters.
+    Loads environment variables from a .env file and validates them.
+    Extracts and converts configuration values for maze height, width,
+    entry/exit positions, seed, and perfect maze flag.
+    Args:
+        filename (str): Path to the .env configuration file to load.
+    Returns:
+        dict[str, str]: A dictionary containing parsed configuration with keys:
+            - 'height' (int): Height of the maze
+            - 'width' (int): Width of the maze
+            - 'start_pos' (tuple[int, int]): Entry point coordinates
+            - 'end_pos' (tuple[int, int]): Exit point coordinates
+            - 'perfect' (bool): Whether to generate a perfect maze
+            - 'seed' (int, optional): Random seed if specified in config
+    Raises:
+        ValueError: If HEIGHT or WIDTH are not valid integers
+        ValueError: If ENTRY or EXIT coordinates cannot be parsed as integers
+        ValueError: If PERFECT field is not 'True' or 'False'
+    """
     if not dotenv.load_dotenv(filename):
         return
     key = [
