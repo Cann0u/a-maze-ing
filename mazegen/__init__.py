@@ -7,8 +7,6 @@ import curses as cs
 import random
 import time
 
-# __all__ = [AStar]
-
 
 class MazeGenerator(BaseModel):
     height: int = Field(ge=2, default=2)

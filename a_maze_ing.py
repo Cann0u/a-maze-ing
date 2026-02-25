@@ -1,6 +1,6 @@
-from mazegen import MazeGenerator
 from pydantic import ValidationError
-from typing import List, Any
+from mazegen import MazeGenerator
+from typing import List, Any, Optional
 import curses as cs
 import dotenv
 import time
@@ -13,7 +13,7 @@ def output_maze(
     start: tuple[int, int],
     end: tuple[int, int],
     path_find: str,
-) -> None:
+) -> List[str]:
     with open("output_maze.txt", "w") as file:
         for line in lines:
             file.write(line + "\n")
@@ -21,6 +21,11 @@ def output_maze(
         file.write(f"{start[0]},{start[1]}\n")
         file.write(f"{end[0]},{end[1]}\n")
         file.write("".join(path_find) + "\n")
+        full_str = "\n".join(lines) + "\n\n"
+        full_str += f"{start[0]},{start[1]}\n"
+        full_str += f"{end[0]},{end[1]}\n"
+        full_str += "".join(path_find) + "\n"
+    return full_str
 
 
 def parse_config(filename: str) -> dict[str, Any]:
@@ -53,7 +58,7 @@ def parse_config(filename: str) -> dict[str, Any]:
     if read_file["SEED"] is not None:
         seed = int(read_file["SEED"])
     try:
-        if read_file["PERFECT"] is None or read_file["PERFECT"] not in [
+        if read_file["PERFECT"] is ut_mazNone or read_file["PERFECT"] not in [
             "True",
             "False",
         ]:
@@ -72,8 +77,9 @@ def parse_config(filename: str) -> dict[str, Any]:
         dico.update({"seed": seed})
     return dico
 
-
-def update_ouput(generator: MazeGenerator, maze: List[List[int]]) -> Any:
+ut_maz
+def update_ouput(generator: MazeGenerator,
+                 maze: List[List[int]]) -> Optional[str]:
     hex_map = generator.convert_hex_maze(maze)
     short_path = ShortPath.shortest_path(generator, maze)
     if short_path:
