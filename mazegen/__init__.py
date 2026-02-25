@@ -1,3 +1,4 @@
+from typing import Any, List, Tuple
 from pydantic import BaseModel, Field, model_validator
 from .dfs_path import DFS
 from constant import CELL
@@ -6,7 +7,7 @@ import curses as cs
 import random
 import time
 
-__all__ = [AStar]
+# __all__ = [AStar]
 
 
 class MazeGenerator(BaseModel):
@@ -15,22 +16,22 @@ class MazeGenerator(BaseModel):
     start_pos: tuple[int, int] = Field(default=(0, 0))
     end_pos: tuple[int, int] = Field(default=(1, 1))
     perfect: bool
-    seed: int = None
+    seed: int | None = None
 
     @property
-    def solver_astar(self):
+    def solver_astar(self) -> "AStar":
         return AStar(self.start_pos, self.end_pos)
 
     @property
-    def solver_dfs(self):
+    def solver_dfs(self) -> "DFS":
         return DFS(self.start_pos, self.end_pos)
 
     @property
-    def start(self):
+    def start(self) -> Tuple[int, int]:
         return (self.start_pos[1] * 2 + 1, self.start_pos[0] * 2 + 1)
 
     @property
-    def end(self):
+    def end(self) -> Tuple[int, int]:
         return (self.end_pos[1] * 2 + 1, self.end_pos[0] * 2 + 1)
 
     @model_validator(mode="after")
@@ -41,16 +42,17 @@ class MazeGenerator(BaseModel):
             raise ValueError("invalid start position")
         return self
 
-    def break_wall(self, maze, pos, direc):
+    def break_wall(self, maze: List[List[int]], pos: Tuple[int, int],
+                   direc: Tuple[int, int]) -> Tuple[int, int]:
         for _ in range(2):
             x, y = pos
             h, w = direc
-            maze[x + h][y + w] = 1
+            maze[x + h][y + w] = CELL.EMPTY.value
             pos = (x + h, y + w)
         return pos
 
     @staticmethod
-    def setup_colors():
+    def setup_colors() -> None:
         cs.start_color()
         cs.use_default_colors()
         cs.init_pair(1, 8, -1)
@@ -62,20 +64,20 @@ class MazeGenerator(BaseModel):
         cs.init_pair(7, 11, -1)
 
     @staticmethod
-    def clear(maze: list[list[int]]):
+    def clear_all(maze: list[list[int]]) -> None:
         for i, row in enumerate(maze):
             for j, col in enumerate(row):
                 if col == CELL.FIND.value or col == CELL.PATH.value:
                     maze[i][j] = CELL.EMPTY.value
 
     @staticmethod
-    def clear_path(maze: list[list[int]]):
+    def clear_path(maze: list[list[int]]) -> None:
         for i, row in enumerate(maze):
             for j, col in enumerate(row):
                 if col == CELL.PATH.value:
                     maze[i][j] = CELL.EMPTY.value
 
-    def set_fourty_two(self, maze: list[list[str]]):
+    def set_fourty_two(self, maze: list[list[int]]) -> List[List[int]]:
         fourty_two = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 5, 0, 0, 0, 0, 0, 0, 0, 5, 0, 5, 0, 5, 0],
@@ -104,11 +106,12 @@ class MazeGenerator(BaseModel):
         if height <= ft_height:
             return maze
         for i, lst in enumerate(fourty_two):
-            for j, l in enumerate(lst):
-                maze[start[0] + i][start[1] + j] = l
+            for j, val in enumerate(lst):
+                maze[start[0] + i][start[1] + j] = val
+        return maze
 
     @staticmethod
-    def change_color(maze: list[list[int]]):
+    def change_color(maze: list[list[int]]) -> None:
         cs.start_color()
         cs.use_default_colors()
         func = {
@@ -144,7 +147,8 @@ class MazeGenerator(BaseModel):
         win.refresh()
 
     @staticmethod
-    def print_maze(screen, maze, hide=False):
+    def print_maze(screen: Any, maze: List[List[int]],
+                   hide: bool = False) -> None:
         for y, row in enumerate(maze):
             for x, char in enumerate(row):
                 if char == 0:
@@ -197,7 +201,7 @@ class MazeGenerator(BaseModel):
                 except Exception:
                     pass
 
-    def maze_gen(self, screen=None) -> list[list[int]]:
+    def maze_gen(self, screen: Any = None) -> list[list[int]]:
         height = self.height * 2 + 1
         width = self.width * 2 + 1
         maze = [[0 for j in range(width)] for i in range(height)]
@@ -209,7 +213,7 @@ class MazeGenerator(BaseModel):
         if (x >= height or y >= width) or (x < 0 or y < 0):
             raise ValueError("Invalid start coordinate")
         end = False
-        prev = []
+        prev: List[Tuple[int, int]] = []
         self.set_fourty_two(maze)
         if maze[x][y] == 5:
             raise ValueError("Invalid start coordinate")
@@ -226,14 +230,14 @@ class MazeGenerator(BaseModel):
                     i != 0
                     and curr[0] + i * 2 > 0
                     and curr[0] + i * 2 < height
-                    and maze[curr[0] + i * 2][curr[1]] == 0
+                    and maze[curr[0] + i * 2][curr[1]] == CELL.WALL.value
                 ):
                     valid_pos.append((i, j))
                 if (
                     j != 0
                     and curr[1] + j * 2 > 0
                     and curr[1] + j * 2 < width
-                    and maze[curr[0]][curr[1] + j * 2] == 0
+                    and maze[curr[0]][curr[1] + j * 2] == CELL.WALL.value
                 ):
                     valid_pos.append((i, j))
             if len(valid_pos) == 0:
@@ -258,7 +262,7 @@ class MazeGenerator(BaseModel):
                         ):
                             y, x = random.choice(direc)
                             if (
-                                maze[i + y * 2][j + x * 2] == 1
+                                maze[i + y * 2][j + x * 2] == CELL.EMPTY.value
                             ):
                                 maze[i + y][j + x] = 1
             for i, row in enumerate(maze):
@@ -269,25 +273,25 @@ class MazeGenerator(BaseModel):
                     ):
                         if (
                             col == 0
-                            and maze[i - 1][j] == 1
-                            and maze[i + 1][j] == 1
-                            and maze[i][j - 1] == 1
-                            and maze[i][j + 1] == 1
+                            and maze[i - 1][j] == CELL.EMPTY.value
+                            and maze[i + 1][j] == CELL.EMPTY.value
+                            and maze[i][j - 1] == CELL.EMPTY.value
+                            and maze[i][j + 1] == CELL.EMPTY.value
                         ):
-                            maze[i][j] = 1
+                            maze[i][j] = CELL.EMPTY.value
             if screen is not None:
                 self.print_maze(screen, maze)
                 time.sleep(1 / 60)
                 screen.refresh()
         y, x = self.start
         maze[y][x] = 6
-        maze[self.end[0]][self.end[1]] = 7
+        maze[self.end[0]][self.end[1]] = CELL.EXIT.value
         return maze
 
-    def convert_hex_maze(self, maze: list[list[str]]) -> list[list[str]]:
+    def convert_hex_maze(self, maze: list[list[int]]) -> list[str]:
         height = self.height * 2 + 1
         width = self.width * 2 + 1
-        convert_line = []
+        convert_line: List[str] = []
         for x in range(1, height, 2):
             row = []
             for y in range(1, width, 2):

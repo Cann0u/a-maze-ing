@@ -2,13 +2,13 @@
 WIDTH=20
 
 #Maze height
-HEIGHT=20
+HEIGHT=15
 
 #Entry coordinates (x,y):
-ENTRY=0,8
+ENTRY=0,0
 
 #Exit coordinates (x,y):
-EXIT=16,16
+EXIT=15,14
 
 
 #Output filename:
