@@ -42,10 +42,16 @@ def parse_config(filename: str) -> dict[str, Any]:
     ]
     read_file = {j: os.getenv(j) for j in key}
     seed = -1
+    val_height = read_file["HEIGHT"]
+    if val_height is None:
+        raise ValueError("[ERROR] HEIGHT must be integer value")
     try:
         height = int(read_file["HEIGHT"])
     except ValueError:
         raise ValueError("[ERROR] HEIGHT must be integer value")
+    val_height = read_file["WIDHT"]
+    if val_height is None:
+        raise ValueError("[ERROR] WIDHT must be integer value")
     try:
         width = int(read_file["WIDTH"])
     except ValueError:
@@ -58,7 +64,7 @@ def parse_config(filename: str) -> dict[str, Any]:
     if read_file["SEED"] is not None:
         seed = int(read_file["SEED"])
     try:
-        if read_file["PERFECT"] is ut_mazNone or read_file["PERFECT"] not in [
+        if read_file["PERFECT"] is None or read_file["PERFECT"] not in [
             "True",
             "False",
         ]:
@@ -77,11 +83,12 @@ def parse_config(filename: str) -> dict[str, Any]:
         dico.update({"seed": seed})
     return dico
 
-ut_maz
+
 def update_ouput(generator: MazeGenerator,
                  maze: List[List[int]]) -> Optional[str]:
     hex_map = generator.convert_hex_maze(maze)
     short_path = ShortPath.shortest_path(generator, maze)
+    output_map: Optional[str] = None
     if short_path:
         output_map = output_maze(
             hex_map, generator.start_pos, generator.end_pos, short_path
