@@ -300,4 +300,5 @@ def main() -> None:
                 print(error["msg"])
 
 
-main()
+if __name__ == "__main__":
+    main()
