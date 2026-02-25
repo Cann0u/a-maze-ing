@@ -1,36 +1,68 @@
 from typing import Any, List, Tuple
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
 from .dfs_path import DFS
 from constant import CELL
 from .astar import AStar
 import curses as cs
 import random
 import time
+import dotenv
+import os
 
 
-class MazeGenerator(BaseModel):
-    height: int = Field(ge=2, default=2)
-    width: int = Field(ge=2, default=2)
-    start_pos: tuple[int, int] = Field(default=(0, 0))
-    end_pos: tuple[int, int] = Field(default=(1, 1))
-    perfect: bool
-    seed: int | None = None
+class MazeGenerator:
+    def __init__(self, filename: str):
+        config = self.parse_config(filename)
+        config = Config(**config)
+        self.start_pos = config.start_pos
+        self.end_pos = config.end_pos
+        self.width = config.width
+        self.height = config.height
+        self.start = (config.start_pos[1] * 2 + 1, config.start_pos[0] * 2 + 1)
+        self.end = (config.end_pos[1] * 2 + 1, config.end_pos[0] * 2 + 1)
+        self.seed = config.seed
+        self.perfect = config.perfect
+        self.solver_astar = AStar(config.start_pos, config.end_pos)
+        self.solver_dfs = DFS(config.start_pos, config.end_pos)
+        self.maze = []
 
-    @property
-    def solver_astar(self) -> "AStar":
-        return AStar(self.start_pos, self.end_pos)
-
-    @property
-    def solver_dfs(self) -> "DFS":
-        return DFS(self.start_pos, self.end_pos)
-
-    @property
-    def start(self) -> Tuple[int, int]:
-        return (self.start_pos[1] * 2 + 1, self.start_pos[0] * 2 + 1)
-
-    @property
-    def end(self) -> Tuple[int, int]:
-        return (self.end_pos[1] * 2 + 1, self.end_pos[0] * 2 + 1)
+    @staticmethod
+    def parse_config(filename: str) -> dict[str, Any]:
+        """
+        Parse a configuration file and extract maze parameters.
+        Loads environment variables from a .env file and validates them.
+        Extracts and converts configuration values for maze height, width,
+        entry/exit positions, seed, and perfect maze flag.
+        Args:
+            filename (str): Path to the .env configuration file to load.
+        Returns:
+            dict[str, Any]:
+            A dictionary containing parsed configuration with keys:
+                - 'height' (int): Height of the maze
+                - 'width' (int): Width of the maze
+                - 'start_pos' (tuple[int, int]): Entry point coordinates
+                - 'end_pos' (tuple[int, int]): Exit point coordinates
+                - 'perfect' (bool): Whether to generate a perfect maze
+                - 'seed' (int, optional): Random seed if specified in config
+        Raises:
+            ValueError: If HEIGHT or WIDTH are not valid integers
+            ValueError:
+            If ENTRY or EXIT coordinates cannot be parsed as integers
+            ValueError: If PERFECT field is not 'True' or 'False'
+        """
+        if not dotenv.load_dotenv(filename):
+            return {}
+        key = [
+            "HEIGHT",
+            "WIDTH",
+            "ENTRY",
+            "EXIT",
+            "PERFECT",
+            "SEED",
+            "OUTPUT_FILE",
+        ]
+        read_file = {j: os.getenv(j) for j in key}
+        return read_file
 
     @model_validator(mode="after")
     def check_format(self) -> "MazeGenerator":
@@ -40,8 +72,12 @@ class MazeGenerator(BaseModel):
             raise ValueError("invalid start position")
         return self
 
-    def break_wall(self, maze: List[List[int]], pos: Tuple[int, int],
-                   direc: Tuple[int, int]) -> Tuple[int, int]:
+    def break_wall(
+        self,
+        maze: List[List[int]],
+        pos: Tuple[int, int],
+        direc: Tuple[int, int],
+    ) -> Tuple[int, int]:
         for _ in range(2):
             x, y = pos
             h, w = direc
@@ -125,7 +161,7 @@ class MazeGenerator(BaseModel):
             "green": 2,
             "yellow": 11,
             "blue": 4,
-            "cyan": 9
+            "cyan": 9,
         }
         win = cs.newwin(3, 45, len(maze) + 1, 35)
         win.border()
@@ -145,8 +181,9 @@ class MazeGenerator(BaseModel):
         win.refresh()
 
     @staticmethod
-    def print_maze(screen: Any, maze: List[List[int]],
-                   hide: bool = False) -> None:
+    def print_maze(
+        screen: Any, maze: List[List[int]], hide: bool = False
+    ) -> None:
         for y, row in enumerate(maze):
             for x, char in enumerate(row):
                 if char == 0:
@@ -156,15 +193,17 @@ class MazeGenerator(BaseModel):
                         pass
                 elif char == 1:
                     try:
-                        screen.addstr(y, x * 2, "██", cs.color_pair(2) |
-                                      cs.A_BOLD)
+                        screen.addstr(
+                            y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
+                        )
                     except Exception:
                         pass
                 elif char == 3:
                     try:
                         if hide:
-                            screen.addstr(y, x * 2, "██", cs.color_pair(2) |
-                                          cs.A_BOLD)
+                            screen.addstr(
+                                y, x * 2, "██", cs.color_pair(2) | cs.A_BOLD
+                            )
                         else:
                             screen.addstr(y, x * 2, "██", cs.color_pair(3))
                     except Exception:
@@ -202,7 +241,7 @@ class MazeGenerator(BaseModel):
     def maze_gen(self, screen: Any = None) -> list[list[int]]:
         height = self.height * 2 + 1
         width = self.width * 2 + 1
-        maze = [[0 for j in range(width)] for i in range(height)]
+        self.maze = [[0 for j in range(width)] for i in range(height)]
         direc = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         x, y = self.end
         if (x >= height or y >= width) or (x < 0 or y < 0):
@@ -212,15 +251,15 @@ class MazeGenerator(BaseModel):
             raise ValueError("Invalid start coordinate")
         end = False
         prev: List[Tuple[int, int]] = []
-        self.set_fourty_two(maze)
-        if maze[x][y] == 5:
+        self.set_fourty_two(self.maze)
+        if self.maze[x][y] == 5:
             raise ValueError("Invalid start coordinate")
         x, y = self.end
-        if maze[x][y] == 5:
+        if self.maze[x][y] == 5:
             raise ValueError("Invalid end coordinate")
         curr = self.start
         x, y = curr
-        maze[x][y] = 1
+        self.maze[x][y] = 1
         while not end:
             valid_pos = []
             for i, j in direc:
@@ -228,31 +267,33 @@ class MazeGenerator(BaseModel):
                     i != 0
                     and curr[0] + i * 2 > 0
                     and curr[0] + i * 2 < height
-                    and maze[curr[0] + i * 2][curr[1]] == CELL.WALL.value
+                    and self.maze[curr[0] + i * 2][curr[1]] == CELL.WALL.value
                 ):
                     valid_pos.append((i, j))
                 if (
                     j != 0
                     and curr[1] + j * 2 > 0
                     and curr[1] + j * 2 < width
-                    and maze[curr[0]][curr[1] + j * 2] == CELL.WALL.value
+                    and self.maze[curr[0]][curr[1] + j * 2] == CELL.WALL.value
                 ):
                     valid_pos.append((i, j))
             if len(valid_pos) == 0:
                 curr = prev.pop()
             else:
                 prev.append(curr)
-                curr = self.break_wall(maze, curr, random.choice(valid_pos))
+                curr = self.break_wall(
+                    self.maze, curr, random.choice(valid_pos)
+                )
             if prev == []:
                 end = True
             if screen is not None:
-                self.print_maze(screen, maze)
+                self.print_maze(screen, self.maze)
                 time.sleep(1 / 60)
                 screen.refresh()
         if not self.perfect:
-            for i in range(1, len(maze), 2):
-                for j in range(1, len(maze[i]), 2):
-                    if maze[i][j] == 1:
+            for i in range(1, len(self.maze), 2):
+                for j in range(1, len(self.maze[i]), 2):
+                    if self.maze[i][j] == 1:
                         if (
                             height - 2 > i > 1
                             and 1 < j < width - 2
@@ -260,31 +301,29 @@ class MazeGenerator(BaseModel):
                         ):
                             y, x = random.choice(direc)
                             if (
-                                maze[i + y * 2][j + x * 2] == CELL.EMPTY.value
+                                self.maze[i + y * 2][j + x * 2]
+                                == CELL.EMPTY.value
                             ):
-                                maze[i + y][j + x] = 1
-            for i, row in enumerate(maze):
+                                self.maze[i + y][j + x] = 1
+            for i, row in enumerate(self.maze):
                 for j, col in enumerate(row):
-                    if (
-                        height - 2 > i > 1
-                        and 1 < j < width - 2
-                    ):
+                    if height - 2 > i > 1 and 1 < j < width - 2:
                         if (
                             col == 0
-                            and maze[i - 1][j] == CELL.EMPTY.value
-                            and maze[i + 1][j] == CELL.EMPTY.value
-                            and maze[i][j - 1] == CELL.EMPTY.value
-                            and maze[i][j + 1] == CELL.EMPTY.value
+                            and self.maze[i - 1][j] == CELL.EMPTY.value
+                            and self.maze[i + 1][j] == CELL.EMPTY.value
+                            and self.maze[i][j - 1] == CELL.EMPTY.value
+                            and self.maze[i][j + 1] == CELL.EMPTY.value
                         ):
-                            maze[i][j] = CELL.EMPTY.value
+                            self.maze[i][j] = CELL.EMPTY.value
             if screen is not None:
-                self.print_maze(screen, maze)
+                self.print_maze(screen, self.maze)
                 time.sleep(1 / 60)
                 screen.refresh()
         y, x = self.start
-        maze[y][x] = 6
-        maze[self.end[0]][self.end[1]] = CELL.EXIT.value
-        return maze
+        self.maze[y][x] = 6
+        self.maze[self.end[0]][self.end[1]] = CELL.EXIT.value
+        return self.maze
 
     def convert_hex_maze(self, maze: list[list[int]]) -> list[str]:
         height = self.height * 2 + 1
@@ -305,3 +344,19 @@ class MazeGenerator(BaseModel):
                 row.append(format(value, "X"))
             convert_line.append("".join(row))
         return convert_line
+
+
+class Config(BaseModel):
+    height: int = Field(alias="HEIGHT", ge=2, default=2)
+    width: int = Field(alias="WIDTH", ge=2, default=2)
+    start_pos: tuple[int, int] = Field(alias="ENTRY", default=(0, 0))
+    end_pos: tuple[int, int] = Field(alias="EXIT", default=(1, 1))
+    perfect: bool = Field(alias="PERFECT")
+    seed: int | None = Field(default=None, alias="SEED")
+    out_put: str = Field(alias="OUTPUT_FILE", min_length=1)
+
+    @field_validator("start_pos", "end_pos", mode="before")
+    @staticmethod
+    def tupl_valid(value: str):
+        value = value.replace("()", "")
+        return value.split(",")

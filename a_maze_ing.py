@@ -2,10 +2,8 @@ from pydantic import ValidationError
 from mazegen import MazeGenerator
 from typing import List, Any, Optional
 import curses as cs
-import dotenv
 import time
 import sys
-import os
 
 
 def output_maze(
@@ -44,76 +42,6 @@ def output_maze(
         full_str += f"{end[0]},{end[1]}\n"
         full_str += "".join(path_find) + "\n"
     return full_str
-
-
-def parse_config(filename: str) -> dict[str, Any]:
-    """
-    Parse a configuration file and extract maze parameters.
-    Loads environment variables from a .env file and validates them.
-    Extracts and converts configuration values for maze height, width,
-    entry/exit positions, seed, and perfect maze flag.
-    Args:
-        filename (str): Path to the .env configuration file to load.
-    Returns:
-        dict[str, Any]: A dictionary containing parsed configuration with keys:
-            - 'height' (int): Height of the maze
-            - 'width' (int): Width of the maze
-            - 'start_pos' (tuple[int, int]): Entry point coordinates
-            - 'end_pos' (tuple[int, int]): Exit point coordinates
-            - 'perfect' (bool): Whether to generate a perfect maze
-            - 'seed' (int, optional): Random seed if specified in config
-    Raises:
-        ValueError: If HEIGHT or WIDTH are not valid integers
-        ValueError: If ENTRY or EXIT coordinates cannot be parsed as integers
-        ValueError: If PERFECT field is not 'True' or 'False'
-    """
-    if not dotenv.load_dotenv(filename):
-        return {}
-    key = [
-        "HEIGHT",
-        "WIDTH",
-        "ENTRY",
-        "EXIT",
-        "PERFECT",
-        "SEED",
-        "OUTPUT_FILE",
-    ]
-    read_file = {j: os.getenv(j) for j in key}
-    seed = -1
-    try:
-        height = int(read_file["HEIGHT"])
-    except ValueError:
-        raise ValueError("[ERROR] HEIGHT must be integer value")
-    try:
-        width = int(read_file["WIDTH"])
-    except ValueError:
-        raise ValueError("[ERROR] WIDTH must be integer value")
-    try:
-        start_pos = tuple(map(int, read_file["ENTRY"].split(",")))
-        end_pos = tuple(map(int, read_file["EXIT"].split(",")))
-    except ValueError:
-        raise ValueError("[ERROR] Invalid Value in tuple EXIT or ENTRY")
-    if read_file["SEED"] is not None:
-        seed = int(read_file["SEED"])
-    try:
-        if read_file["PERFECT"] is None or read_file["PERFECT"] not in [
-            "True",
-            "False",
-        ]:
-            raise ValueError("[ERROR] PERFECT field must be 'True' or 'False'")
-        perfect = read_file["PERFECT"] == "True"
-    except Exception:
-        raise ValueError("[ERROR] PERFECT field must be 'True' or 'False'")
-    dico = {
-        "height": height,
-        "width": width,
-        "start_pos": start_pos,
-        "end_pos": end_pos,
-        "perfect": perfect,
-    }
-    if seed != -1:
-        dico.update({"seed": seed})
-    return dico
 
 
 def update_ouput(generator: MazeGenerator,
@@ -299,8 +227,8 @@ def main() -> None:
         print("error arg")
         sys.exit(1)
     try:
-        config = parse_config(av[1])
-        generator = MazeGenerator(**config)
+        # config = parse_config(av[1])
+        generator = MazeGenerator(av[1])
         visu = Visualizer()
         visu.render(generator)
         visu.close_screen()
