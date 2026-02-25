@@ -1,10 +1,11 @@
-from mazegen import MazeGenerator
 from pydantic import ValidationError
+from mazegen import MazeGenerator
+from typing import List, Any, Optional
 import curses as cs
-import time
-import os
 import dotenv
+import time
 import sys
+import os
 
 
 def output_maze(
@@ -12,7 +13,7 @@ def output_maze(
     start: tuple[int, int],
     end: tuple[int, int],
     path_find: str,
-) -> None:
+) -> List[str]:
     """
     Write maze data to an output file.
 
@@ -26,7 +27,7 @@ def output_maze(
         the path solution through the maze.
 
     Returns:
-        None
+        list str
 
     Writes the maze grid, start position, end position,
     and solution path to 'output_maze.txt'.
@@ -38,9 +39,14 @@ def output_maze(
         file.write(f"{start[0]},{start[1]}\n")
         file.write(f"{end[0]},{end[1]}\n")
         file.write("".join(path_find) + "\n")
+        full_str = "\n".join(lines) + "\n\n"
+        full_str += f"{start[0]},{start[1]}\n"
+        full_str += f"{end[0]},{end[1]}\n"
+        full_str += "".join(path_find) + "\n"
+    return full_str
 
 
-def parse_config(filename: str) -> dict[str, str]:
+def parse_config(filename: str) -> dict[str, Any]:
     """
     Parse a configuration file and extract maze parameters.
     Loads environment variables from a .env file and validates them.
@@ -49,7 +55,7 @@ def parse_config(filename: str) -> dict[str, str]:
     Args:
         filename (str): Path to the .env configuration file to load.
     Returns:
-        dict[str, str]: A dictionary containing parsed configuration with keys:
+        dict[str, Any]: A dictionary containing parsed configuration with keys:
             - 'height' (int): Height of the maze
             - 'width' (int): Width of the maze
             - 'start_pos' (tuple[int, int]): Entry point coordinates
@@ -62,7 +68,7 @@ def parse_config(filename: str) -> dict[str, str]:
         ValueError: If PERFECT field is not 'True' or 'False'
     """
     if not dotenv.load_dotenv(filename):
-        return
+        return {}
     key = [
         "HEIGHT",
         "WIDTH",
@@ -110,7 +116,8 @@ def parse_config(filename: str) -> dict[str, str]:
     return dico
 
 
-def update_ouput(generator: MazeGenerator, maze):
+def update_ouput(generator: MazeGenerator,
+                 maze: List[List[int]]) -> Optional[str]:
     hex_map = generator.convert_hex_maze(maze)
     short_path = ShortPath.shortest_path(generator, maze)
     if short_path:
@@ -131,30 +138,29 @@ class Button:
         self.focus = cs.color_pair(11)
         self.focused = False
 
-    def draw(self, screen):
+    def draw(self, screen: Any) -> None:
         if self.focused:
             screen.addstr(self.x, self.y, self.text, self.focus | cs.A_BOLD)
         else:
-            screen.addstr(
-                self.x, self.y, self.text, self.color_pair | cs.A_BOLD
-            )
+            screen.addstr(self.x, self.y, self.text, self.color_pair |
+                          cs.A_BOLD)
 
-    def toggle_focus(self):
+    def toggle_focus(self) -> None:
         self.focused = not self.focused
 
 
 class Visualizer:
     def __init__(
         self,
-    ):
+    ) -> None:
         self.__screen = cs.initscr()
         self.__screen.nodelay(True)
 
     @property
-    def screen(self):
+    def screen(self) -> "cs.window":
         return self.__screen
 
-    def render(self, generator: MazeGenerator):
+    def render(self, generator: MazeGenerator) -> Any:
         cs.curs_set(0)
         cs.noecho()
         hide = False
@@ -210,28 +216,33 @@ class Visualizer:
                     case 0:
                         break
                     case 1:
-                        generator.clear(maze)
+                        generator.clear_all(maze)
                     case 2:
                         hide = not hide
                     case 3:
                         generator.change_color(maze)
                     case 4:
                         try:
-                            generator.clear(maze=maze)
+                            hide = False
+                            generator.clear_all(maze=maze)
                             generator.solver_astar.solve(maze, self.__screen)
                             update_ouput(generator, maze)
                             generator.clear_path(maze)
+                            self.__screen.refresh()
                         except ValueError as e:
                             print(e)
                     case 5:
                         try:
-                            generator.clear(maze=maze)
+                            hide = False
+                            generator.clear_all(maze=maze)
                             generator.solver_dfs.solve(maze, self.__screen)
                             update_ouput(generator, maze)
                             generator.clear_path(maze)
+                            self.__screen.refresh()
                         except ValueError as e:
                             print(e)
                     case 6:
+                        hide = False
                         maze = generator.maze_gen(self.__screen)
                         generator.solver_astar.solve(maze, self.__screen)
                         update_ouput(generator, maze)
@@ -260,7 +271,7 @@ class Visualizer:
             pass
         update_ouput(generator, maze)
 
-    def close_screen(self):
+    def close_screen(self) -> None:
         cs.nocbreak()
         self.__screen.keypad(False)
         cs.echo()
@@ -270,11 +281,12 @@ class Visualizer:
 class ShortPath:
 
     @staticmethod
-    def shortest_path(generator: MazeGenerator, maze):
+    def shortest_path(generator: MazeGenerator,
+                      maze: List[List[int]]) -> List[str]:
         try:
             generator.clear_path(maze)
             astar_path = generator.solver_astar.solve(maze)
-            shortest = astar_path
+            shortest: List[str] = astar_path
         except ValueError:
             print("path is invalid")
         return shortest

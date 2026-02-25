@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Protocol, Tuple, List, Any, Optional
 from constant import CELL
 import heapq
 import time
@@ -10,44 +10,49 @@ class MazeSolver(Protocol):
 
 
 class AStar:
-    def __init__(self, start: tuple[int, int], end: tuple[int, int]):
-        self.start = tuple(map(lambda e: e * 2 + 1, start))
-        self.end = tuple(map(lambda e: e * 2 + 1, end))
-        self.start = (self.start[1], self.start[0])
-        self.end = (self.end[1], self.end[0])
+    start: Tuple[int, int]
+    end: Tuple[int, int]
+
+    def __init__(self, start: tuple[int, int], end: tuple[int, int]) -> None:
+        temp_start = tuple(map(lambda e: e * 2 + 1, start))
+        temp_end = tuple(map(lambda e: e * 2 + 1, end))
+        self.start = (temp_start[1], temp_start[0])
+        self.end = (temp_end[1], temp_end[0])
 
     class Cells:
-        def __init__(self):
+        def __init__(self) -> None:
             self.parent_i = -1
             self.parent_j = -1
             self.f = float("inf")
             self.g = float("inf")
-            self.h = 0
+            self.h = 0.0
 
-    def calculate_h_value(self, row: int, col: int):
-        return ((row - self.end[0]) ** 2 + (col - self.end[1]) ** 2) ** 0.5
+    def calculate_h_value(self, row: int, col: int) -> float:
+        return float((row - self.end[0]) ** 2 +
+                     (col - self.end[1]) ** 2) ** 0.5
 
     @staticmethod
-    def is_valid(row: int, col: int, size: tuple[int, int]):
+    def is_valid(row: int, col: int, size: Tuple[int, int]) -> int:
         return (
             (row >= 0) and (row < size[0]) and (col >= 0) and (col < size[1])
         )
 
     @staticmethod
-    def is_unblocked(curr: tuple, maze: list, direc: tuple):
+    def is_unblocked(curr: Tuple[int, int], maze: List[List[int]],
+                     direc: Tuple[int, int]) -> bool:
         x, y = curr
         d_x, d_y = tuple(map(lambda e: e // 2, direc))
-        return (
+        return bool(
             maze[x - d_x][y - d_y] != 0
             and maze[x - direc[0]][y - direc[1]] != CELL.WALL.value
         )
 
-    def is_destination(self, row: int, col: int):
+    def is_destination(self, row: int, col: int) -> int:
         return row == self.end[0] and col == self.end[1]
 
     def trace_path(
-        self, screen, cell_tab: list[list[Cells]], maze: list[list[int]]
-    ):
+        self, screen: Any, cell_tab: list[list[Cells]], maze: list[list[int]]
+    ) -> List[str]:
         from mazegen import MazeGenerator
 
         path = []
@@ -78,12 +83,13 @@ class AStar:
                 if maze[x2][y2] == CELL.PATH.value:
                     maze[x2][y2] = CELL.FIND.value
             if screen is not None:
-                MazeGenerator.print_maze(screen, maze)
+                MazeGenerator.print_maze(screen, maze, hide=False)
                 time.sleep(1 / 60)
                 screen.refresh()
         return path_coord
 
-    def solve(self, maze: list[list[int]], screen=None) -> list[int]:
+    def solve(self, maze: list[list[int]],
+              screen: Optional[Any] = None) -> list[str]:
         from mazegen import MazeGenerator
 
         height = len(maze)
@@ -99,7 +105,7 @@ class AStar:
         cell_tab[i][j].g = 0
         cell_tab[i][j].f = 0
         cell_tab[i][j].h = 0
-        cell_open = []
+        cell_open: List[Tuple[float, int, int]] = []
         heapq.heappush(cell_open, (0.0, i, j))
         while len(cell_open) > 0:
             p = heapq.heappop(cell_open)
@@ -136,7 +142,7 @@ class AStar:
                             cell_tab[new_i][new_j].parent_i = i
                             cell_tab[new_i][new_j].parent_j = j
                     if screen is not None:
-                        MazeGenerator.print_maze(screen, maze)
+                        MazeGenerator.print_maze(screen, maze, hide=False)
                         time.sleep(1 / 60)
                         screen.refresh()
         return []
