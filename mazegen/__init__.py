@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Callable
 from pydantic import BaseModel, Field, model_validator, field_validator
 from .dfs_path import DFS
 from constant import CELL
@@ -12,8 +12,8 @@ import os
 
 class MazeGenerator:
     def __init__(self, filename: str):
-        config = self.parse_config(filename)
-        config = Config(**config)
+        parsed = self.parse_config(filename)
+        config = Config(**parsed)
         self.start_pos = config.start_pos
         self.end_pos = config.end_pos
         self.width = config.width
@@ -24,7 +24,7 @@ class MazeGenerator:
         self.perfect = config.perfect
         self.solver_astar = AStar(config.start_pos, config.end_pos)
         self.solver_dfs = DFS(config.start_pos, config.end_pos)
-        self.maze = []
+        self.maze: list[list[int]] = []
 
     @staticmethod
     def parse_config(filename: str) -> dict[str, Any]:
@@ -148,7 +148,7 @@ class MazeGenerator:
     def change_color(maze: list[list[int]]) -> None:
         cs.start_color()
         cs.use_default_colors()
-        func = {
+        func: dict[str, Callable[[int], None]] = {
             "wall": lambda e: cs.init_pair(1, e, -1),
             "empty": lambda e: cs.init_pair(2, e, -1),
             "path": lambda e: cs.init_pair(3, e, -1),
@@ -357,6 +357,6 @@ class Config(BaseModel):
 
     @field_validator("start_pos", "end_pos", mode="before")
     @staticmethod
-    def tupl_valid(value: str):
+    def tupl_valid(value: str) -> list[str]:
         value = value.replace("()", "")
         return value.split(",")

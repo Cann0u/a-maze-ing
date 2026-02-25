@@ -10,8 +10,8 @@ def output_maze(
     lines: list[str],
     start: tuple[int, int],
     end: tuple[int, int],
-    path_find: str,
-) -> List[str]:
+    path_find: list[str],
+) -> str:
     """
     Write maze data to an output file.
 
@@ -192,11 +192,6 @@ class Visualizer:
         win.keypad(False)
         win.clear()
         win.refresh()
-        hex_map = generator.convert_hex_maze(maze)
-        try:
-            output_maze(hex_map, generator.start_pos, generator.end_pos)
-        except Exception:
-            pass
         update_ouput(generator, maze)
 
     def close_screen(self) -> None:
@@ -227,7 +222,6 @@ def main() -> None:
         print("error arg")
         sys.exit(1)
     try:
-        # config = parse_config(av[1])
         generator = MazeGenerator(av[1])
         visu = Visualizer()
         visu.render(generator)

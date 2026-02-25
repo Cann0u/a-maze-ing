@@ -28,8 +28,8 @@ class AStar:
             self.h = 0.0
 
     def calculate_h_value(self, row: int, col: int) -> float:
-        return float((row - self.end[0]) ** 2 +
-                     (col - self.end[1]) ** 2) ** 0.5
+        return float(float((row - self.end[0]) ** 2 +
+                     (col - self.end[1]) ** 2) ** 0.5)
 
     @staticmethod
     def is_valid(row: int, col: int, size: Tuple[int, int]) -> int:
