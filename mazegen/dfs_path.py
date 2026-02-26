@@ -8,17 +8,65 @@ class DFS:
     end: Tuple[int, int]
 
     def __init__(self, start: Tuple[int, int], end: Tuple[int, int]) -> None:
+        """
+        Initialize the pathfinding instance with start and end coordinates.
+
+        Parameters
+        ----------
+        start : Tuple[int, int]
+            The starting coordinate as (row, col).
+        end : Tuple[int, int]
+            The ending coordinate as (row, col).
+
+        Notes
+        -----
+        The input coordinates are transformed by multiplying by 2 and adding 1,
+        then swapped to convert from (row, col) to (col, row) format.
+        """
         temp_start = tuple(map(lambda e: e * 2 + 1, start))
         temp_end = tuple(map(lambda e: e * 2 + 1, end))
         self.start = (temp_start[1], temp_start[0])
         self.end = (temp_end[1], temp_end[0])
 
-    def find_path_dfs(self, maze_matrix: List[List[int]],
-                      screen: Optional[Any] = None) -> List[str]:
+    def find_path_dfs(
+        self, maze_matrix: List[List[int]], screen: Optional[Any] = None
+    ) -> List[str]:
+        """
+        Find a path from start to end in a maze using Depth-First Search.
+
+        This method implements a DFS algorithm to find a path through a maze
+        represented as a 2D matrix. It explores the maze by following a
+        stack-based approach, marking visited cells and updating the maze
+        visualization in real-time if a screen is provided.
+
+        Parameters
+        ----------
+        maze_matrix : List[List[int]]
+            A 2D list representing the maze where different integer values
+            denote different cell types (walls, empty cells, path markers, etc)
+        screen : Optional[Any], optional
+            A screen object for real-time visualization of the maze exploration
+            If provided, the maze state is printed and the screen is refreshed
+            at each step. Default is None.
+
+        Returns
+        -------
+        List[str]
+            A list of direction strings ('N', 'S', 'E', 'W') representing the
+            path from the start position to the end position. Returns an empty
+            list if no path is found.
+
+        Notes
+        -----
+        The method modifies maze_matrix in-place to mark visited cells and the
+        path. Cell values are checked against CELL enum values (WALL, EMPTY,
+        FIND, PATH). The visualization updates at 60 FPS (1/60 second sleep
+        between updates). Uses a stack data structure to maintain the frontier
+        of unexplored cells.
+        """
         from mazegen import MazeGenerator
 
-        stack: List[Tuple[Tuple[int, int],
-                          List[str]]] = [((self.start), [])]
+        stack: List[Tuple[Tuple[int, int], List[str]]] = [((self.start), [])]
         is_visit: Set[Tuple[int, int]] = {self.start}
         moove_matrix = {(-1, 0): "N", (1, 0): "S", (0, -1): "W", (0, 1): "E"}
         while stack:
@@ -57,8 +105,43 @@ class DFS:
                             screen.refresh()
         return []
 
-    def solve(self, maze: List[List[int]],
-              screen: Optional[Any] = None) -> List[str]:
+    def solve(
+        self, maze: List[List[int]], screen: Optional[Any] = None
+    ) -> List[str]:
+        """
+        Solve the maze using depth-first search pathfinding.
+
+        This method finds a path from the start position to the end position
+        in a maze using depth-first search algorithm. It marks the path taken
+        and optionally visualizes the solution on screen.
+
+        Parameters
+        ----------
+        maze : List[List[int]]
+            A 2D list representing the maze where each cell contains an integer
+            value indicating the cell type (empty, wall, start, end, etc.).
+        screen : Optional[Any], optional
+            Optional screen object for visualization. If provided, the maze is
+            redrawn after each move at 60 FPS. Default is None.
+
+        Returns
+        -------
+        List[str]
+            A list of direction strings ('N', 'S', 'E', 'W') representing the
+            path from start to end. Returns an empty list if start and end are
+            the same.
+
+        Raises
+        ------
+        ValueError
+            If the end coordinate is out of bounds or if the end cell is not
+            empty or an exit cell.
+
+        Notes
+        -----
+        This method modifies the input maze in-place, marking visited cells and
+        the found path.
+        """
         from mazegen import MazeGenerator
 
         height = len(maze)
