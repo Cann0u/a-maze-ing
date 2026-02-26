@@ -99,10 +99,6 @@ class DFS:
                             maze_matrix[pos_x][pos_y] = CELL.PATH.value
                         coord_path = current_path + [direction]
                         stack.append(((pos_x, pos_y), coord_path))
-                        MazeGenerator.print_maze(screen, maze_matrix)
-                        time.sleep(1 / 60)
-                        if screen is not None:
-                            screen.refresh()
         return []
 
     def solve(

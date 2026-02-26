@@ -356,12 +356,14 @@ class MazeGenerator:
             "grey": 8,
             "black": cs.COLOR_BLACK,
             "white": cs.COLOR_WHITE,
-            "green": 2,
-            "yellow": 11,
-            "blue": 4,
-            "cyan": 9,
+            "green": cs.COLOR_GREEN,
+            "yellow": cs.COLOR_YELLOW,
+            "blue": cs.COLOR_BLUE,
+            "cyan": cs.COLOR_CYAN,
+            "red": cs.COLOR_RED,
+            "magenta": cs.COLOR_MAGENTA
         }
-        win = cs.newwin(3, 45, len(maze) + 1, 35)
+        win = cs.newwin(3, 25, len(maze) + 1, 35)
         win.border()
         cs.echo()
         win.move(1, 1)

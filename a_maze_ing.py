@@ -44,7 +44,7 @@ def output_maze(
     return full_str
 
 
-def update_ouput(
+def update_output(
     generator: MazeGenerator, maze: List[List[int]]
 ) -> Optional[str]:
     """
@@ -186,7 +186,7 @@ class Visualizer:
         try:
             maze = generator.maze_gen(self.__screen)
             generator.solver_astar.solve(maze, self.__screen)
-            update_ouput(generator, maze)
+            update_output(generator, maze)
             generator.clear_path(maze)
             self.__screen.refresh()
         except ValueError as e:
@@ -244,7 +244,6 @@ class Visualizer:
                             hide = False
                             generator.clear_all(maze=maze)
                             generator.solver_astar.solve(maze, self.__screen)
-                            update_ouput(generator, maze)
                             generator.clear_path(maze)
                             self.__screen.refresh()
                         except ValueError as e:
@@ -254,7 +253,6 @@ class Visualizer:
                             hide = False
                             generator.clear_all(maze=maze)
                             generator.solver_dfs.solve(maze, self.__screen)
-                            update_ouput(generator, maze)
                             generator.clear_path(maze)
                             self.__screen.refresh()
                         except ValueError as e:
@@ -263,7 +261,7 @@ class Visualizer:
                         hide = False
                         maze = generator.maze_gen(self.__screen)
                         generator.solver_astar.solve(maze, self.__screen)
-                        update_ouput(generator, maze)
+                        update_output(generator, maze)
                         generator.clear_path(maze)
             if old_select != select:
                 buttons[old_select].toggle_focus()
@@ -282,7 +280,7 @@ class Visualizer:
         win.keypad(False)
         win.clear()
         win.refresh()
-        update_ouput(generator, maze)
+        update_output(generator, maze)
 
     def close_screen(self) -> None:
         """
