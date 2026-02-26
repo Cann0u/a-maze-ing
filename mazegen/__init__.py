@@ -105,11 +105,15 @@ class MazeGenerator:
                         invalid (height < 2, width < 2, invalid positions).
     """
 
-    def __init__(self, filename: str = None, config: Config = None):
+    def __init__(
+        self,
+        filename: str | None = None,
+        config: Config | None = None,
+    ):
         if filename:
             parsed = self.parse_config(filename)
             config = Config(**parsed)
-        elif not config:
+        if not config:
             raise ValueError("Invalid config")
         self.start_pos = config.start_pos
         self.end_pos = config.end_pos
