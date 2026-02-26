@@ -24,7 +24,9 @@ class MazeGenerator:
         self.perfect = config.perfect
         self.solver_astar = AStar(config.start_pos, config.end_pos)
         self.solver_dfs = DFS(config.start_pos, config.end_pos)
-        self.maze: list[list[int]] = []
+        self.maze: list[list[int]] = self.maze_gen()
+        self.path = self.solver_astar.solve(self.maze)
+        self.clear_all(self.maze)
 
     @staticmethod
     def parse_config(filename: str) -> dict[str, Any]:
