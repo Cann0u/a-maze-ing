@@ -10,10 +10,29 @@ import dotenv
 import os
 
 
+class Config(BaseModel):
+    height: int = Field(alias="HEIGHT", ge=2, default=2)
+    width: int = Field(alias="WIDTH", ge=2, default=2)
+    start_pos: tuple[int, int] = Field(alias="ENTRY", default=(0, 0))
+    end_pos: tuple[int, int] = Field(alias="EXIT", default=(1, 1))
+    perfect: bool = Field(alias="PERFECT")
+    seed: int | None = Field(default=None, alias="SEED")
+    out_put: str = Field(alias="OUTPUT_FILE", min_length=1)
+
+    @field_validator("start_pos", "end_pos", mode="before")
+    @staticmethod
+    def tupl_valid(value: str) -> list[str]:
+        value = value.replace("()", "")
+        return value.split(",")
+
+
 class MazeGenerator:
-    def __init__(self, filename: str):
-        parsed = self.parse_config(filename)
-        config = Config(**parsed)
+    def __init__(self, filename: str = None, config: Config = None):
+        if filename:
+            parsed = self.parse_config(filename)
+            config = Config(**parsed)
+        elif not config:
+            raise ValueError("Invalid config")
         self.start_pos = config.start_pos
         self.end_pos = config.end_pos
         self.width = config.width
@@ -346,19 +365,3 @@ class MazeGenerator:
                 row.append(format(value, "X"))
             convert_line.append("".join(row))
         return convert_line
-
-
-class Config(BaseModel):
-    height: int = Field(alias="HEIGHT", ge=2, default=2)
-    width: int = Field(alias="WIDTH", ge=2, default=2)
-    start_pos: tuple[int, int] = Field(alias="ENTRY", default=(0, 0))
-    end_pos: tuple[int, int] = Field(alias="EXIT", default=(1, 1))
-    perfect: bool = Field(alias="PERFECT")
-    seed: int | None = Field(default=None, alias="SEED")
-    out_put: str = Field(alias="OUTPUT_FILE", min_length=1)
-
-    @field_validator("start_pos", "end_pos", mode="before")
-    @staticmethod
-    def tupl_valid(value: str) -> list[str]:
-        value = value.replace("()", "")
-        return value.split(",")
