@@ -7,6 +7,7 @@ import curses as cs
 import random
 import time
 import dotenv
+import sys
 import os
 
 
@@ -66,6 +67,8 @@ class Config(BaseModel):
             >>> tupl_valid("a,b,c")
             ['a', 'b', 'c']
         """
+        if not value:
+            raise ValueError("EXIT or ENTRY is empty")
         value = value.replace("()", "")
         return value.split(",")
 
@@ -322,9 +325,8 @@ class MazeGenerator:
             int(self.height - (ft_height - self.height % 2) / 2),
             int(self.width - (ft_width - self.width % 2) / 2),
         ]
-        if width <= ft_width:
-            return maze
-        if height <= ft_height:
+        if width <= ft_width or height <= ft_height:
+            print("too small", file=sys.stderr)
             return maze
         for i, lst in enumerate(fourty_two):
             for j, val in enumerate(lst):
